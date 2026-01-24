@@ -6,6 +6,7 @@ import { useState } from "react"
 import ServiceModal from "@/components/ServiceModal"
 import { Links } from "@/constants/nav"
 import { servicesData } from "@/constants/service"
+import { HyperText } from "@/components/ui/hyper-text"
 
 export default function Home() {
   const [selectedService, setSelectedService] = useState<(typeof servicesData)[0] | null>(null)
@@ -69,10 +70,12 @@ export default function Home() {
         </section>
 
         <footer>
-          <div className="cta">
+          <div className="cta grid place-items-center">
             <h2>
-              START<br />
-              DEPLOYING
+              <HyperText className="text-9xl max-w-2xl">
+                START
+                DEPLOYING
+              </HyperText>
             </h2>
           </div>
           <div className="footer-bottom">

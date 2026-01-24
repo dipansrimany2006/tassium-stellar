@@ -335,7 +335,6 @@ nav {
 }
 
 .services {
-  padding: 100px 0px;
   border-top: 1px solid var(--accent);
 }
 
@@ -350,7 +349,7 @@ nav {
 
 .service-row:hover {
   padding-left: 40px;
-  background: rgba(10, 10, 10, 0.7);
+  background: rgba(10, 10, 10, 0.4);
 }
 
 .service-row h2 {
@@ -478,10 +477,6 @@ footer {
 
   .project-info p {
     font-size: 12px;
-  }
-
-  .services {
-    padding: 60px 0px;
   }
 
   .service-row {
