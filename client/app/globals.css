@@ -239,7 +239,7 @@ nav {
 }
 
 .hero-meta p {
-  grid-column: 8 / span 5;
+  grid-column: 8 / span 4;
   font-size: 18px;
   line-height: 1.6;
   color: rgb(136, 136, 136);
@@ -327,6 +327,11 @@ nav {
   color: rgb(102, 102, 102);
   text-transform: uppercase;
   letter-spacing: 1px;
+  transition: color 0.8s var(--transition), filter 0.8s ease;
+}
+
+.project-card:hover p {
+  color: white;
 }
 
 .services {
@@ -391,7 +396,7 @@ footer {
   padding-top: 40px;
   border-top: 1px solid var(--accent);
   font-size: 12px;
-  color: rgb(68, 68, 68);
+  color: white;
   text-transform: uppercase;
   letter-spacing: 2px;
 }
@@ -861,14 +866,12 @@ footer {
   width: 100%;
   padding: 24px 40px;
   background: #ffffff;
-  color: #000000;
-  border: none;
+  border: 2px solid #ffffff;
   font-size: 16px;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 2px;
   cursor: pointer;
-  transition: all 0.3s var(--transition);
   position: relative;
   overflow: hidden;
 }
@@ -882,16 +885,17 @@ footer {
   height: 100%;
   background: #000000;
   transition: left 0.4s var(--transition);
-  z-index: 0;
 }
 
 .modal-cta:hover::before {
   left: 0;
 }
 
-.modal-cta:hover {
+.modal-cta-text {
+  position: relative;
+  z-index: 1;
   color: #ffffff;
-  border: 2px solid #ffffff;
+  mix-blend-mode: difference;
 }
 
 /* Mobile responsive modal styles */
