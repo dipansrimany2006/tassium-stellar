@@ -83,8 +83,8 @@ export default function Home() {
             TASSIUM
           </div>
           <div className="nav-links">
-            <Link href="/journal">DOCUMENTS</Link>
-            <Link href="/contact">GET STARTED</Link>
+            <Link href="/documentation">DOCUMENTS</Link>
+            <Link href="/">GET STARTED</Link>
           </div>
         </nav>
 
