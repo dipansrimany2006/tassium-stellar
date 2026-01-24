@@ -6,6 +6,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /tmp:/tmp
+      - /etc/buildkitd.toml:/etc/buildkitd.toml:ro
     networks:
       - traefik-public
     deploy:

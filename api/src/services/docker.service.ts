@@ -18,12 +18,19 @@ export class DockerDeployError extends Error {
 export async function buildAndPushImage(
   buildDir: string,
   appName: string,
-  buildId: string
+  buildId: string,
 ): Promise<string> {
   const imageName = `${REGISTRY}/${appName}:${buildId}`;
-  const result = await exec(
-    `docker buildx build --platform linux/amd64,linux/arm64 -t ${imageName} --push ${buildDir} 2>&1`
+
+  // Ensure builder exists
+  await exec(
+    `docker buildx create --name multiarch --config /etc/buildkitd.toml --use 2>/dev/null || docker buildx use multiarch`,
   );
+
+  const result = await exec(
+    `docker buildx build --platform linux/amd64,linux/arm64 -t ${imageName} --push ${buildDir} 2>&1`,
+  );
+
   if (!result.success) {
     const lines = (result.stderr || result.stdout).split("\n");
     const errorLines = lines.slice(-10).join("\n");
@@ -31,16 +38,24 @@ export async function buildAndPushImage(
   }
   return imageName;
 }
-
-export async function deployStack(stackFile: string, appName: string): Promise<void> {
-  const result = await exec(`docker stack deploy -c ${stackFile} ${appName} 2>&1`);
+export async function deployStack(
+  stackFile: string,
+  appName: string,
+): Promise<void> {
+  const result = await exec(
+    `docker stack deploy -c ${stackFile} ${appName} 2>&1`,
+  );
   if (!result.success) {
-    throw new DockerDeployError(result.stderr || result.stdout || "Unknown deploy error");
+    throw new DockerDeployError(
+      result.stderr || result.stdout || "Unknown deploy error",
+    );
   }
 }
 
 export async function appExists(appName: string): Promise<boolean> {
-  const result = await exec(`docker stack ls --format '{{.Name}}' | grep -w ${appName}`);
+  const result = await exec(
+    `docker stack ls --format '{{.Name}}' | grep -w ${appName}`,
+  );
   return result.success && result.stdout.includes(appName);
 }
 
