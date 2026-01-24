@@ -44,7 +44,7 @@ export default function PageLoader() {
       <div className="loader-content">
         <div className="loader-square"></div>
         <div className="loader-text-professional">
-          <span className="loader-void">VOID</span>
+          <span className="loader-void">TASSIUM</span>
           <span className="loader-progress">{progress}%</span>
         </div>
       </div>

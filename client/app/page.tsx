@@ -71,12 +71,9 @@ export default function Home() {
 
         <footer>
           <div className="cta grid place-items-center">
-            <h2>
-              <HyperText className="text-9xl max-w-2xl">
-                START
-                DEPLOYING
-              </HyperText>
-            </h2>
+            <HyperText className="text-9xl font-black max-w-3xl">
+              START DEPLOYING
+            </HyperText>
           </div>
           <div className="footer-bottom">
             <div>Tassium © 2025</div>
