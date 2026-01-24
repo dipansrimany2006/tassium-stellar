@@ -1,35 +1,24 @@
-"use client";
-import { useState } from "react";
-import { useWallet } from "@/context/wallet-context";
-import { Button } from "@/component/ui/button";
-import { DeployDialog, DeployFormData } from "@/component/deploy-dialog";
+import { Button } from "@/components/ui/button";
+import { DeployDialog } from "@/components/deploy-dialog";
+import { SingleDeploymentCard } from "@/components/cards/single-deployment-card";
+import { deployments } from "@/constants";
 
 export default function Home() {
-  const { isConnected } = useWallet();
-  const [dialogOpen, setDialogOpen] = useState(false);
-
-  const handleDeploy = async (data: DeployFormData) => {
-    // TODO: implement API call
-    console.log("Deploy data:", data);
-    await new Promise((r) => setTimeout(r, 1000)); // simulate API
-  };
-
   return (
-    <div className="w-full h-full flex flex-col items-center justify-center">
-      {isConnected && (
-        <div className="flex items-center gap-4 mb-8">
-          <p className="text-xl font-semibold">Your Applications</p>
-          <Button variant="outline" onClick={() => setDialogOpen(true)}>
+    <div className="w-full">
+      <div className="w-full flex items-center justify-between">
+        <p className="text-xl font-semibold uppercase">Your Apps</p>
+        <DeployDialog>
+          <Button className="p-6 px-8" variant={"outline"}>
             Deploy
           </Button>
-        </div>
-      )}
-
-      <DeployDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        onSubmit={handleDeploy}
-      />
+        </DeployDialog>
+      </div>
+      <div className="mt-5 w-full grid grid-cols-3 gap-6">
+        {deployments.map((deployment, i) => (
+          <SingleDeploymentCard key={i} deployment={deployment} />
+        ))}
+      </div>
     </div>
   );
 }
