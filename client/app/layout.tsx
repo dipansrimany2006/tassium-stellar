@@ -1,6 +1,6 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Geist, Geist_Mono } from "next/font/google"
+import { Geist, Geist_Mono, JetBrains_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
 import ScrollAnimations from "@/components/ScrollAnimations"
@@ -9,14 +9,25 @@ import PageTransition from "@/components/PageTransition"
 import NavigationLoader from "@/components/NavigationLoader"
 import SilkBackground from "@/components/SilkBackground"
 
-const _geist = Geist({ subsets: ["latin"] })
-const _geistMono = Geist_Mono({ subsets: ["latin"] })
+const geistMono = JetBrains_Mono({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "VOID Studio - Stark Identity Studio",
+  title: "Tassium - Distributed Container Deployment",
   description:
-    "Multidisciplinary design practice operating at the intersection of brutalist aesthetics and digital precision.",
-  generator: "v0.app",
+    "Self-hosted container deployment platform. Deploy from GitHub to your own infrastructure with one click. No vendor lock-in.",
+  keywords: ["container", "deployment", "self-hosted", "docker", "kubernetes", "stellar", "distributed"],
+  authors: [{ name: "Silone Labs" }],
+  openGraph: {
+    title: "Tassium - Distributed Container Deployment",
+    description: "Self-hosted container deployment platform. Deploy from GitHub to your own infrastructure with one click.",
+    type: "website",
+    siteName: "Tassium",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Tassium - Distributed Container Deployment",
+    description: "Self-hosted container deployment platform. Deploy from GitHub to your own infrastructure with one click.",
+  },
   icons: {
     icon: [
       {
@@ -43,7 +54,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`font-sans antialiased`}>
+      <body className={`${geistMono.className} font-sans antialiased`}>
         <SilkBackground />
         <PageLoader />
         <NavigationLoader />

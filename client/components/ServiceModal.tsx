@@ -67,7 +67,7 @@ export default function ServiceModal({ isOpen, onClose, service }: ServiceModalP
 
         <div className="modal-footer">
           <button className="modal-cta" onClick={onClose}>
-            LET'S DISCUSS YOUR PROJECT
+            <span className="modal-cta-text">GET STARTED</span>
           </button>
         </div>
       </div>
