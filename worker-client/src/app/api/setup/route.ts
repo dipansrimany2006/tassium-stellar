@@ -27,6 +27,7 @@ echo -e "\${YELLOW}Installing Docker...\${NC}"
 sudo apt update
 sudo apt install -y docker.io jq
 sudo usermod -aG docker $USER
+newgrp docker
 
 # Step 2: Install Tailscale
 echo -e "\${YELLOW}Installing Tailscale...\${NC}"
@@ -59,7 +60,6 @@ if [ -z "$TAILSCALE_AUTHKEY" ] || [ "$TAILSCALE_AUTHKEY" = "null" ]; then
   exit 1
 fi
 
-echo -e "\${TAILSCALE_AUTHKEY}"
 
 # Step 4: Authenticate Tailscale with authkey
 echo -e "\${YELLOW}Authenticating Tailscale with authkey...\${NC}"
