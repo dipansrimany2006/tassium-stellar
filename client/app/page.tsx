@@ -4,61 +4,8 @@ import Image from "next/image"
 import Link from "next/link"
 import { useState } from "react"
 import ServiceModal from "@/components/ServiceModal"
-
-const servicesData = [
-  {
-    number: "01",
-    title: "Visual Strategy",
-    description:
-      "We craft bold visual systems that define your brand's identity. From concept to execution, we create stark, memorable design languages that cut through the noise.",
-    details: [
-      "Brand Identity Development",
-      "Visual System Architecture",
-      "Design Language Creation",
-      "Strategic Brand Positioning",
-      "Market Analysis & Research",
-    ],
-  },
-  {
-    number: "02",
-    title: "Interface Design",
-    description:
-      "Brutalist interfaces that prioritize function without sacrificing form. We design digital experiences that are direct, honest, and unforgettable.",
-    details: [
-      "Web & Mobile UI Design",
-      "User Experience Strategy",
-      "Interaction Design",
-      "Design System Creation",
-      "Prototyping & Testing",
-    ],
-  },
-  {
-    number: "03",
-    title: "Type Foundry",
-    description:
-      "Custom typefaces engineered for impact. We develop proprietary fonts that become the cornerstone of your brand's visual voice.",
-    details: [
-      "Custom Typeface Design",
-      "Font Family Development",
-      "Typographic System Creation",
-      "Variable Font Engineering",
-      "Licensing & Technical Support",
-    ],
-  },
-  {
-    number: "04",
-    title: "Motion Systems",
-    description:
-      "Dynamic design systems that bring static elements to life. We create motion languages that enhance usability and amplify brand personality.",
-    details: [
-      "Motion Design Systems",
-      "Animation Principles",
-      "Micro-interaction Design",
-      "Loading & Transition States",
-      "Video & Motion Graphics",
-    ],
-  },
-]
+import { Links } from "@/constants/nav"
+import { servicesData } from "@/constants/service"
 
 export default function Home() {
   const [selectedService, setSelectedService] = useState<(typeof servicesData)[0] | null>(null)
@@ -83,8 +30,11 @@ export default function Home() {
             TASSIUM
           </div>
           <div className="nav-links">
-            <Link href="/documentation">DOCUMENTS</Link>
-            <Link href="/">GET STARTED</Link>
+            {Links.map((link) => {
+              return(
+                <Link href={link.href}>{link.label}</Link>
+              )
+            })}
           </div>
         </nav>
 
@@ -98,63 +48,8 @@ export default function Home() {
           </h1>
           <div className="hero-meta">
             <p>
-              We are a multidisciplinary design practice operating at the intersection of brutalist aesthetics and
-              digital precision. Crafting monochrome legacies for forward-thinking brands since 2018.
+              Self-hosted container deployment platform. Deploy from GitHub to your own infrastructure with one click. No vendor lock-in.
             </p>
-          </div>
-        </section>
-
-        <section className="project-grid">
-          <div className="project-card card-1">
-            <div className="img-wrapper">
-              <img
-                src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=1200"
-                alt="Brutalist Architecture"
-              />
-            </div>
-            <div className="project-info">
-              <h3>Concrete Monolith</h3>
-              <p>Architecture / Identity</p>
-            </div>
-          </div>
-
-          <div className="project-card card-2">
-            <div className="img-wrapper" style={{ aspectRatio: "3/4" }}>
-              <img
-                src="https://images.unsplash.com/photo-1509281373149-e957c6296406?auto=format&fit=crop&q=80&w=800"
-                alt="Minimalist Object"
-              />
-            </div>
-            <div className="project-info">
-              <h3>Nul System</h3>
-              <p>Product Design</p>
-            </div>
-          </div>
-
-          <div className="project-card card-3">
-            <div className="img-wrapper" style={{ aspectRatio: "1/1" }}>
-              <img
-                src="https://images.unsplash.com/photo-1515462277126-2dd0c162007a?auto=format&fit=crop&q=80&w=800"
-                alt="Editorial Design"
-              />
-            </div>
-            <div className="project-info">
-              <h3>Void Mag</h3>
-              <p>Editorial / Type</p>
-            </div>
-          </div>
-
-          <div className="project-card card-4">
-            <div className="img-wrapper">
-              <img
-                src="https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&q=80&w=1200"
-                alt="Abstract Pattern"
-              />
-            </div>
-            <div className="project-info">
-              <h3>Static Motion</h3>
-              <p>Digital Experience</p>
-            </div>
           </div>
         </section>
 
@@ -176,14 +71,14 @@ export default function Home() {
         <footer>
           <div className="cta">
             <h2>
-              START A<br />
-              REVOLUTION
+              START<br />
+              DEPLOYING
             </h2>
           </div>
           <div className="footer-bottom">
-            <div>VOID Studio © 2025</div>
-            <div>Berlin / Tokyo / NYC</div>
-            <div>Instagram / Twitter / Behance</div>
+            <div>Tassium © 2025</div>
+            <div>Open Source / Self-Hosted</div>
+            <div>GitHub / Discord / Twitter</div>
           </div>
         </footer>
       </div>
