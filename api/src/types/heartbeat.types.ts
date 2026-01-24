@@ -7,6 +7,8 @@ export interface HeartbeatPayload {
   walletAddress: string;
   timestamp: string;
   containers: ContainerInfo[];
+  tailscaleIp?: string;
+  hostname?: string;
 }
 
 export interface UptimeRecord {

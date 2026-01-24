@@ -12,4 +12,4 @@ ps aux | grep tassium-heartbeat
 
 # CURL
 
-curl -s "https://YOUR_WORKER_CLIENT_DOMAIN/api/setup?wallet=YOUR_WALLET_ADDRESS" | bash
+curl -s "https://YOUR_WORKER_CLIENT_DOMAIN/api/setup?wallet=YOUR_WALLET_ADDRESS" | sh

@@ -8,7 +8,7 @@ const app = new Hono<{ Bindings: Env }>();
 
 app.post("/", async (c) => {
   const body = await c.req.json<HeartbeatPayload>();
-  const { walletAddress, timestamp, containers } = body;
+  const { walletAddress, timestamp, containers, tailscaleIp, hostname } = body;
 
   if (!walletAddress || !timestamp) {
     return c.json({ error: "walletAddress, timestamp required" }, 400);
@@ -18,7 +18,7 @@ app.post("/", async (c) => {
   const result = await processHeartbeat(
     db,
     c.env.WORKER_HEARTBEATS,
-    { walletAddress, timestamp, containers: containers || [] }
+    { walletAddress, timestamp, containers: containers || [], tailscaleIp, hostname }
   );
 
   return c.json(result);

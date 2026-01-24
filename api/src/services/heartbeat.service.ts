@@ -9,7 +9,7 @@ export async function processHeartbeat(
   kv: KVNamespace,
   payload: HeartbeatPayload
 ) {
-  const { walletAddress, timestamp, containers } = payload;
+  const { walletAddress, timestamp, containers, tailscaleIp, hostname } = payload;
   const now = new Date(timestamp);
 
   // Get existing uptime record from KV
@@ -51,10 +51,10 @@ export async function processHeartbeat(
   // Update worker last seen
   await db
     .insert(workers)
-    .values({ walletAddress, lastSeen: now })
+    .values({ walletAddress, lastSeen: now, tailscaleIp, hostname })
     .onConflictDoUpdate({
       target: workers.walletAddress,
-      set: { lastSeen: now },
+      set: { lastSeen: now, tailscaleIp, hostname },
     });
 
   return { success: true };

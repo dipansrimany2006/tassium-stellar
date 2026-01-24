@@ -101,9 +101,12 @@ while true; do
   CONTAINERS=$(docker ps --format "{{.Names}}|{{.Ports}}" | \\
     jq -R -s -c 'split("\\n") | map(select(length > 0)) | map(split("|") | {containerName: .[0], port: .[1]})')
 
+  TAILSCALE_IP=$(tailscale ip -4 2>/dev/null || echo "")
+  HOSTNAME=$(hostname)
+
   curl -s -X POST "$API_URL/api/v1/heartbeat" \\
     -H "Content-Type: application/json" \\
-    -d "{\\"walletAddress\\": \\"$WALLET_ADDRESS\\", \\"timestamp\\": \\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\\", \\"containers\\": $CONTAINERS}"
+    -d "{\\"walletAddress\\": \\"$WALLET_ADDRESS\\", \\"timestamp\\": \\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\\", \\"containers\\": $CONTAINERS, \\"tailscaleIp\\": \\"$TAILSCALE_IP\\", \\"hostname\\": \\"$HOSTNAME\\"}"
 
   sleep 300
 done
