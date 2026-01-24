@@ -140,6 +140,19 @@ echo -e "\${YELLOW}Heartbeat service is running. Check status: systemctl status 
 export async function GET(request: NextRequest) {
   const wallet = request.nextUrl.searchParams.get("wallet");
 
+  const missing = [];
+  if (!API_ACCESS_TOKEN) missing.push("TAILSCALE_API_KEY");
+  if (!TAILNET_ID) missing.push("TAILNET_ID");
+  if (!SWARM_TOKEN) missing.push("SWARM_TOKEN");
+  if (!API_URL) missing.push("TASSIUM_API_URL");
+
+  if (missing.length > 0) {
+    return new NextResponse(`Missing env vars: ${missing.join(", ")}`, {
+      status: 500,
+      headers: { "Content-Type": "text/plain" },
+    });
+  }
+
   if (!wallet) {
     return new NextResponse(
       "Missing wallet query parameter. Usage: /api/setup?wallet=YOUR_WALLET_ADDRESS",
