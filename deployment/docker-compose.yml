@@ -1,0 +1,25 @@
+version: "3.8"
+
+services:
+  deployer:
+    image: localhost:5000/deployer:latest
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /tmp:/tmp
+      - /etc/buildkitd.toml:/etc/buildkitd.toml:ro
+    networks:
+      - traefik-public
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.deployer.rule=Host(`deploy.tassium.roydevelops.tech`)"
+        - "traefik.http.routers.deployer.entrypoints=websecure"
+        - "traefik.http.routers.deployer.tls.certresolver=letsencrypt"
+        - "traefik.http.services.deployer.loadbalancer.server.port=3000"
+
+networks:
+  traefik-public:
+    external: true
