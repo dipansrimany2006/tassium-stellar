@@ -140,7 +140,7 @@ export async function GET(request: NextRequest) {
   const wallet = request.nextUrl.searchParams.get('wallet')
 
   if (!wallet) {
-    return new NextResponse('Missing wallet query parameter. Usage: /api/setup?wallet=0x...', {
+    return new NextResponse('Missing wallet query parameter. Usage: /api/setup?wallet=YOUR_WALLET_ADDRESS', {
       status: 400,
       headers: { "Content-Type": "text/plain" },
     })
