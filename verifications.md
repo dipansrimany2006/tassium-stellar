@@ -1,11 +1,15 @@
-# Check systemd service status
+## Check systemd service status
 
 systemctl status tassium-heartbeat
 
-# View logs
+## View logs
 
 journalctl -u tassium-heartbeat -f
 
-# Check if process running
+## Check if process running
 
 ps aux | grep tassium-heartbeat
+
+# CURL
+
+curl -s "https://YOUR_WORKER_CLIENT_DOMAIN/api/setup?wallet=YOUR_WALLET_ADDRESS" | bash

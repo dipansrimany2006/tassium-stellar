@@ -1,9 +1,10 @@
-import { NextResponse, NextRequest } from "next/server"
+import { NextResponse, NextRequest } from "next/server";
 
-const API_ACCESS_TOKEN = 'tskey-api-kTPs2fV36r11CNTRL-ppGmgLCwKHLJZqhZemNZHLQyX22m3QpVA'
-const TAILNET_ID = 'TZovZknxNP11CNTRL'
-const SWARM_TOKEN = 'SWMTKN-1-1c3awgo688ylbmax034ph47rj79qfu6r7x12nclonzuifqvri2-1x0rc0o76037rjnd441lixl1k'
-const API_URL = process.env.TASSIUM_API_URL || 'https://api.tassium.roydevelops.tech'
+const API_ACCESS_TOKEN = process.env.TAILSCALE_API_KEY;
+const TAILNET_ID = process.env.TAILNET_ID;
+const SWARM_TOKEN = process.env.SWARM_TOKEN;
+const API_URL =
+  process.env.TASSIUM_API_URL || "https://api.tassium.roydevelops.tech";
 
 function generateSetupScript(walletAddress: string) {
   return `#!/bin/bash
@@ -133,20 +134,23 @@ sudo systemctl start tassium-heartbeat
 echo -e "\${GREEN}=== Setup Complete ===\${NC}"
 echo -e "\${YELLOW}Note: You may need to log out and back in for docker group to take effect.\${NC}"
 echo -e "\${YELLOW}Heartbeat service is running. Check status: systemctl status tassium-heartbeat\${NC}"
-`
+`;
 }
 
 export async function GET(request: NextRequest) {
-  const wallet = request.nextUrl.searchParams.get('wallet')
+  const wallet = request.nextUrl.searchParams.get("wallet");
 
   if (!wallet) {
-    return new NextResponse('Missing wallet query parameter. Usage: /api/setup?wallet=YOUR_WALLET_ADDRESS', {
-      status: 400,
-      headers: { "Content-Type": "text/plain" },
-    })
+    return new NextResponse(
+      "Missing wallet query parameter. Usage: /api/setup?wallet=YOUR_WALLET_ADDRESS",
+      {
+        status: 400,
+        headers: { "Content-Type": "text/plain" },
+      },
+    );
   }
 
   return new NextResponse(generateSetupScript(wallet), {
     headers: { "Content-Type": "text/plain" },
-  })
+  });
 }
