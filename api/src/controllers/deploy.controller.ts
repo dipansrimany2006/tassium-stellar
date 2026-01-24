@@ -8,12 +8,10 @@ import { validateAppName, validateGithubRepo } from "../utils/validation";
 import { generateBuildId } from "../utils/id";
 import { cloneRepo, hasDockerfile, GitCloneError } from "../services/git.service";
 import {
-  buildImage,
-  pushImage,
+  buildAndPushImage,
   deployStack,
   appExists,
   DockerBuildError,
-  DockerPushError,
   DockerDeployError,
 } from "../services/docker.service";
 import {
@@ -85,9 +83,7 @@ export const createNewDeployment = async (c: Context) => {
       );
     }
 
-    await buildImage(buildDir, app_name, buildId);
-
-    await pushImage(imageName);
+    await buildAndPushImage(buildDir, app_name, buildId);
 
     const yaml = generateStackYaml(ctx);
     const stackFile = await writeStackFile(app_name, yaml);
@@ -111,12 +107,6 @@ export const createNewDeployment = async (c: Context) => {
       return c.json<DeployResponse>(
         { status: "error", message: `Build failed: ${err.details}` },
         422,
-      );
-    }
-    if (err instanceof DockerPushError) {
-      return c.json<DeployResponse>(
-        { status: "error", message: `Registry push failed: ${err.details}` },
-        500,
       );
     }
     if (err instanceof DockerDeployError) {

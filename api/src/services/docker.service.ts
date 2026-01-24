@@ -8,13 +8,6 @@ export class DockerBuildError extends Error {
   }
 }
 
-export class DockerPushError extends Error {
-  constructor(public details: string) {
-    super(`Push failed: ${details}`);
-    this.name = "DockerPushError";
-  }
-}
-
 export class DockerDeployError extends Error {
   constructor(public details: string) {
     super(`Deploy failed: ${details}`);
@@ -22,27 +15,21 @@ export class DockerDeployError extends Error {
   }
 }
 
-export async function buildImage(
+export async function buildAndPushImage(
   buildDir: string,
   appName: string,
   buildId: string
 ): Promise<string> {
   const imageName = `${REGISTRY}/${appName}:${buildId}`;
-  const result = await exec(`docker build -t ${imageName} ${buildDir} 2>&1`);
+  const result = await exec(
+    `docker buildx build --platform linux/amd64,linux/arm64 -t ${imageName} --push ${buildDir} 2>&1`
+  );
   if (!result.success) {
-    // Extract last meaningful error lines
     const lines = (result.stderr || result.stdout).split("\n");
     const errorLines = lines.slice(-10).join("\n");
     throw new DockerBuildError(errorLines || "Unknown build error");
   }
   return imageName;
-}
-
-export async function pushImage(imageName: string): Promise<void> {
-  const result = await exec(`docker push ${imageName} 2>&1`);
-  if (!result.success) {
-    throw new DockerPushError(result.stderr || result.stdout || "Unknown push error");
-  }
 }
 
 export async function deployStack(stackFile: string, appName: string): Promise<void> {
