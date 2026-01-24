@@ -1,0 +1,1 @@
+C:\Users\dipan\OneDrive\DevWorks\Hackathons\tassium-stellar\contract\target\wasm32v1-none\release\deposit_contract.wasm: C:\Users\dipan\OneDrive\DevWorks\Hackathons\tassium-stellar\contract\src\lib.rs
