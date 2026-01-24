@@ -1,9 +1,16 @@
-import { Hono } from 'hono'
+import { Hono } from "hono";
+import { cors } from "hono/cors";
+import { Env } from "./types/env";
+import routes from "./routes";
 
-const app = new Hono()
+const app = new Hono<{ Bindings: Env }>();
 
-app.get('/', (c) => {
-  return c.text('Hello Hono!')
-})
+app.use("*", cors());
 
-export default app
+app.get("/", (c) => {
+  return c.json({ message: "Tassium API" });
+});
+
+app.route("/api/v1", routes);
+
+export default app;
