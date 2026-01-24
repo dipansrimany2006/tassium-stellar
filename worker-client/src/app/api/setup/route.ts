@@ -86,7 +86,7 @@ if [ -z "$SWARM_TOKEN" ]; then
   echo -e "\${YELLOW}Run manually: docker swarm join --token <token> \${REGISTRY_IP}:2377\${NC}"
 else
   echo -e "\${YELLOW}Joining Docker Swarm...\${NC}"
-  docker swarm join --token $SWARM_TOKEN \${REGISTRY_IP}:2377
+  sudo docker swarm join --token $SWARM_TOKEN \${REGISTRY_IP}:2377
 fi
 
 # Step 8: Setup heartbeat service
