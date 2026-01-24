@@ -6,6 +6,8 @@ set -e
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
+API_ACCESS_TOKEN='tskey-api-kTPs2fV36r11CNTRL-ppGmgLCwKHLJZqhZemNZHLQyX22m3QpVA'
+TAILNET_ID='TZovZknxNP11CNTRL'
 
 echo -e "${GREEN}=== Tassium Worker Node Setup ===${NC}"
 
@@ -20,16 +22,38 @@ sudo usermod -aG docker $USER
 echo -e "${YELLOW}Installing Tailscale...${NC}"
 curl -fsSL https://tailscale.com/install.sh | sh
 
-# Step 3: Authenticate Tailscale with authkey
-# Get authkey from: https://login.tailscale.com/admin/settings/keys
-if [ -z "$TAILSCALE_AUTHKEY" ]; then
-  echo -e "${YELLOW}Error: TAILSCALE_AUTHKEY is required${NC}"
+# Step 3: Create auth key via Tailscale API
+if [ -z "$API_ACCESS_TOKEN" ] || [ -z "$TAILNET_ID" ]; then
+  echo -e "${YELLOW}Error: API_ACCESS_TOKEN and TAILNET_ID are required${NC}"
   exit 1
 fi
-echo -e "${YELLOW}Authenticating Tailscale with authkey...${NC}"
-sudo tailscale up --authkey=$TAILSCALE_AUTHKEY # secret
+echo -e "${YELLOW}Creating Tailscale auth key...${NC}"
+TAILSCALE_AUTHKEY=$(curl -s "https://api.tailscale.com/api/v2/tailnet/${TAILNET_ID}/keys" \
+  --request POST \
+  --header 'Content-Type: application/json' \
+  --header "Authorization: Bearer ${API_ACCESS_TOKEN}" \
+  --data '{
+    "capabilities": {
+      "devices": {
+        "create": {
+          "reusable": false,
+          "ephemeral": false,
+          "preauthorized": false
+        }
+      }
+    }
+  }' | jq -r '.key')
 
-# Step 4: Configure insecure registry
+if [ -z "$TAILSCALE_AUTHKEY" ] || [ "$TAILSCALE_AUTHKEY" = "null" ]; then
+  echo -e "${YELLOW}Error: Failed to create auth key${NC}"
+  exit 1
+fi
+
+# Step 4: Authenticate Tailscale with authkey
+echo -e "${YELLOW}Authenticating Tailscale with authkey...${NC}"
+sudo tailscale up --authkey=$TAILSCALE_AUTHKEY
+
+# Step 5: Configure insecure registry
 echo -e "${YELLOW}Configuring Docker registry...${NC}"
 REGISTRY_IP="${REGISTRY_IP:-100.75.8.67}"
 
@@ -40,11 +64,11 @@ sudo tee /etc/docker/daemon.json > /dev/null <<EOF
 }
 EOF
 
-# Step 5: Restart Docker
+# Step 6: Restart Docker
 echo -e "${YELLOW}Restarting Docker...${NC}"
 sudo systemctl restart docker
 
-# Step 6: Join Swarm
+# Step 7: Join Swarm
 if [ -z "$SWARM_TOKEN" ]; then
   echo -e "${YELLOW}No SWARM_TOKEN provided. Skipping swarm join.${NC}"
   echo -e "${YELLOW}Run manually: docker swarm join --token <token> ${REGISTRY_IP}:2377${NC}"
