@@ -1,6 +1,5 @@
 import { exec } from "../utils/shell";
-
-const REGISTRY = "localhost:5000";
+import { REGISTRY } from "../config/constants";
 
 export class DockerBuildError extends Error {
   constructor(public details: string) {

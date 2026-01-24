@@ -21,6 +21,7 @@ import {
   writeStackFile,
   getAppUrl,
 } from "../services/stack.service";
+import { REGISTRY } from "../config/constants";
 import { cleanupBuildDir } from "../services/cleanup.service";
 
 const BUILDS_DIR = "/tmp/builds";
@@ -63,7 +64,7 @@ export const createNewDeployment = async (c: Context) => {
 
     const buildId = generateBuildId();
     buildDir = `${BUILDS_DIR}/${app_name}-${buildId}`;
-    const imageName = `localhost:5000/${app_name}:${buildId}`;
+    const imageName = `${REGISTRY}/${app_name}:${buildId}`;
 
     const ctx: BuildContext = {
       appName: app_name,
