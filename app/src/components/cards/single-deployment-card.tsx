@@ -34,7 +34,7 @@ export function SingleDeploymentCard({
               target="_blank"
               className="text-neutral-400 text-sm hover:underline"
             >
-              {deployment.url}
+              Live Link
             </Link>
           </div>
         </div>
