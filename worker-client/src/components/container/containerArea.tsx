@@ -22,7 +22,6 @@ export function ContainerArea() {
   return (
     <div className="border border-neutral-700 bg-neutral-800 flex flex-col">
       {/* Header */}
-      {/* Container list */}
       <div className="overflow-y-auto flex-1">
         {containers.map((container, i) => (
           <div
