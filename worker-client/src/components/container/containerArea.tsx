@@ -2,7 +2,7 @@ import { Box } from "lucide-react";
 
 interface Container {
   name: string;
-  port: number;
+  port: string;
 }
 
 export function ContainerArea({ containers = [] }: { containers?: Container[] }) {
