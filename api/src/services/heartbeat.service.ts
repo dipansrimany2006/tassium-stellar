@@ -1,6 +1,6 @@
 import { Database, workerUptimeRecords, workers } from "../db";
 import { HeartbeatPayload, UptimeRecord } from "../types/heartbeat.types";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 
 const STALENESS_THRESHOLD_MS = 30 * 60 * 1000; // 30 minutes
 
@@ -48,13 +48,18 @@ export async function processHeartbeat(
   // Update containers
   await kv.put(containersKey, JSON.stringify(containers));
 
-  // Update worker last seen
+  // Update worker last seen and increment credits
   await db
     .insert(workers)
-    .values({ walletAddress, lastSeen: now, tailscaleIp, hostname })
+    .values({ walletAddress, lastSeen: now, tailscaleIp, hostname, credits: 100 })
     .onConflictDoUpdate({
       target: workers.walletAddress,
-      set: { lastSeen: now, tailscaleIp, hostname },
+      set: {
+        lastSeen: now,
+        tailscaleIp,
+        hostname,
+        credits: sql`${workers.credits} + 100`,
+      },
     });
 
   return { success: true };
@@ -91,4 +96,12 @@ export async function getWorkerUptime(db: Database, walletAddress: string) {
     .select()
     .from(workerUptimeRecords)
     .where(eq(workerUptimeRecords.walletAddress, walletAddress));
+}
+
+export async function getWorkerByWallet(db: Database, walletAddress: string) {
+  const result = await db
+    .select()
+    .from(workers)
+    .where(eq(workers.walletAddress, walletAddress));
+  return result[0] || null;
 }

@@ -1,14 +1,19 @@
 import Image from "next/image";
 import { Button } from "../ui/button";
+import { RefreshCw } from "lucide-react";
 
 const DataView = ({
   credits,
   ipAddress,
   status,
+  onRefetch,
+  isRefetching,
 }: {
   credits: number;
   ipAddress: string;
   status: "up" | "down";
+  onRefetch?: () => void;
+  isRefetching?: boolean;
 }) => {
   return (
     <div className="border border-neutral-700 h-full bg-neutral-800 p-6 flex flex-col">
@@ -24,6 +29,19 @@ const DataView = ({
           Worker Status
         </span>
         <div className="flex items-center gap-2">
+          {onRefetch && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onRefetch}
+              disabled={isRefetching}
+              className="h-6 w-6"
+            >
+              <RefreshCw
+                className={`h-3 w-3 ${isRefetching ? "animate-spin" : ""}`}
+              />
+            </Button>
+          )}
           <div
             className={`w-2 h-2 rounded-full ${
               status === "up" ? "bg-green-400 animate-pulse" : "bg-red-400"
