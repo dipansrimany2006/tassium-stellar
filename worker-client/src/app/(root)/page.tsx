@@ -1,47 +1,116 @@
 "use client";
 
+import { useState, useEffect, useCallback } from "react";
 import DataView from "@/components/cards/data-view";
 import { ChartArea } from "@/components/charts/page";
 import { ContainerArea } from "@/components/container/containerArea";
+import { SetupCommandView } from "@/components/setup-command-view";
 import { Button } from "@/components/ui/button";
+import { useWallet } from "@/context/wallet-context";
 import Image from "next/image";
-import { useState } from "react";
+
+interface WorkerData {
+  exists: boolean;
+  credits: number;
+  tailscaleIp: string | null;
+  isActive: boolean;
+  lastSeen: string | null;
+}
+
+interface Container {
+  name: string;
+  port: number;
+}
+
+const API_URL = process.env.NEXT_PUBLIC_TASSIUM_API_URL || "https://api.silonelabs.workers.dev";
 
 const Page = () => {
-  const [hasData, setHasData] = useState<boolean>(true);
+  const { walletAddress, connectWallet, isConnecting } = useWallet();
+  const [workerData, setWorkerData] = useState<WorkerData | null>(null);
+  const [containers, setContainers] = useState<Container[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  // Worker data
-  const credits = 1250;
-  const ipAddress = "100.75.8.67";
-  const status: "up" | "down" = "up";
+  const fetchWorkerData = useCallback(async () => {
+    if (!walletAddress) return;
 
-  if (!hasData) {
+    setLoading(true);
+    try {
+      const [workerRes, containersRes] = await Promise.all([
+        fetch(`${API_URL}/api/v1/workers/${walletAddress}`),
+        fetch(`${API_URL}/api/v1/workers/${walletAddress}/containers`),
+      ]);
+
+      const worker = await workerRes.json();
+      const containerData = await containersRes.json();
+
+      setWorkerData(worker);
+      setContainers(containerData || []);
+    } catch (error) {
+      console.error("Failed to fetch worker data:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [walletAddress]);
+
+  useEffect(() => {
+    if (walletAddress) {
+      fetchWorkerData();
+      const interval = setInterval(fetchWorkerData, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [walletAddress, fetchWorkerData]);
+
+  // No wallet connected
+  if (!walletAddress) {
     return (
       <div className="w-full h-screen flex flex-col items-center justify-center gap-6">
         <Image src="/TASSIUM.png" alt="Tassium" width={120} height={120} />
-        <p className="text-neutral-400 text-lg">No incentive data available</p>
+        <p className="text-neutral-400 text-lg">Connect wallet to view your worker</p>
         <Button
           className="p-6 px-8"
-          variant={"outline"}
-          onClick={() => setHasData(true)}
+          variant="outline"
+          onClick={connectWallet}
+          disabled={isConnecting}
         >
-          Join
+          {isConnecting ? "Connecting..." : "Connect Wallet"}
         </Button>
       </div>
     );
   }
 
+  // Loading state
+  if (loading && !workerData) {
+    return (
+      <div className="w-full h-screen flex flex-col items-center justify-center gap-6">
+        <Image src="/TASSIUM.png" alt="Tassium" width={120} height={120} />
+        <p className="text-neutral-400 text-lg">Loading...</p>
+      </div>
+    );
+  }
+
+  // No worker exists - show setup command
+  if (!workerData?.exists) {
+    return <SetupCommandView walletAddress={walletAddress} />;
+  }
+
+  // Worker exists - show dashboard
   return (
     <div className="w-full h-full grid grid-cols-9 gap-5">
       <div className="col-span-3 h-full">
-        <DataView credits={credits} ipAddress={ipAddress} status={status} />
+        <DataView
+          credits={workerData.credits}
+          ipAddress={workerData.tailscaleIp || "---"}
+          status={workerData.isActive ? "up" : "down"}
+          onRefetch={fetchWorkerData}
+          isRefetching={loading}
+        />
       </div>
 
       <div className="col-span-6 flex flex-col gap-5 max-h-screen overflow-hidden">
         <ChartArea />
       </div>
       <div className="w-full col-span-9">
-        <ContainerArea />
+        <ContainerArea containers={containers} />
       </div>
     </div>
   );

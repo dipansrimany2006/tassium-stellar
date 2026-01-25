@@ -16,6 +16,7 @@ CREATE TABLE "projects" (
 	"port" integer DEFAULT 3000,
 	"creator" text NOT NULL,
 	"status" text DEFAULT 'pending' NOT NULL,
+	"replicas" integer DEFAULT 2,
 	"url" text,
 	"error_message" text,
 	"created_at" timestamp DEFAULT now(),
@@ -37,6 +38,7 @@ CREATE TABLE "workers" (
 	"wallet_address" text NOT NULL,
 	"tailscale_ip" text,
 	"hostname" text,
+	"credits" integer DEFAULT 0,
 	"created_at" timestamp DEFAULT now(),
 	"last_seen" timestamp,
 	CONSTRAINT "workers_wallet_address_unique" UNIQUE("wallet_address")

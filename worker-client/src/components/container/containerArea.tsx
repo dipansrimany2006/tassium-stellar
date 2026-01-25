@@ -1,27 +1,21 @@
 import { Box } from "lucide-react";
-import Image from "next/image";
 
 interface Container {
   name: string;
   port: number;
 }
 
-const containers: Container[] = [
-  { name: "nginx-proxy", port: 8080 },
-  { name: "postgres-db", port: 5432 },
-  { name: "redis-cache", port: 6379 },
-  { name: "nginx-proxy", port: 8080 },
-  { name: "postgres-db", port: 5432 },
-  { name: "redis-cache", port: 6379 },
-  { name: "nginx-proxy", port: 8080 },
-  { name: "postgres-db", port: 5432 },
-  { name: "redis-cache", port: 6379 },
-];
+export function ContainerArea({ containers = [] }: { containers?: Container[] }) {
+  if (containers.length === 0) {
+    return (
+      <div className="border border-neutral-700 bg-neutral-800 p-8 flex items-center justify-center">
+        <p className="text-neutral-500 text-sm">No containers running</p>
+      </div>
+    );
+  }
 
-export function ContainerArea() {
   return (
     <div className="border border-neutral-700 bg-neutral-800 flex flex-col">
-      {/* Header */}
       <div className="overflow-y-auto flex-1">
         {containers.map((container, i) => (
           <div

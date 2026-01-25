@@ -20,6 +20,7 @@ export const workers = pgTable("workers", {
   walletAddress: text("wallet_address").notNull().unique(),
   tailscaleIp: text("tailscale_ip"),
   hostname: text("hostname"),
+  credits: integer("credits").default(0),
   createdAt: timestamp("created_at").defaultNow(),
   lastSeen: timestamp("last_seen"),
 });
