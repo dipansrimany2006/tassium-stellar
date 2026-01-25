@@ -2,3 +2,4 @@
 *.secret
 .claude
 demo
+mocks
