@@ -19,10 +19,19 @@ interface WorkerData {
 
 interface Container {
   name: string;
-  port: number;
+  port: string;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_TASSIUM_API_URL || "https://api.silonelabs.workers.dev";
+// Extract port number from Docker format "3000/tcp" or "0.0.0.0:3000->3000/tcp"
+const parsePort = (port: string): string => {
+  if (!port) return "—";
+  const match = port.match(/(\d+)/);
+  return match ? match[1] : port;
+};
+
+const API_URL =
+  process.env.NEXT_PUBLIC_TASSIUM_API_URL ||
+  "https://api.silonelabs.workers.dev";
 
 const Page = () => {
   const { walletAddress, connectWallet, isConnecting } = useWallet();
@@ -44,7 +53,11 @@ const Page = () => {
       const containerData = await containersRes.json();
 
       setWorkerData(worker);
-      setContainers(containerData || []);
+      const mapped = (containerData || []).map((c: any) => ({
+        name: c.containerName || c.name,
+        port: parsePort(c.port),
+      }));
+      setContainers(mapped);
     } catch (error) {
       console.error("Failed to fetch worker data:", error);
     } finally {
@@ -60,14 +73,21 @@ const Page = () => {
     }
   }, [walletAddress, fetchWorkerData]);
 
-  // No wallet connected
   if (!walletAddress) {
     return (
-      <div className="w-full h-screen flex flex-col items-center justify-center gap-6">
-        <Image src="/TASSIUM.png" alt="Tassium" width={120} height={120} />
-        <p className="text-neutral-400 text-lg">Connect wallet to view your worker</p>
+      <div className="w-full flex flex-col items-center justify-center gap-6">
+        <Image
+          src="/TASSIUM.png"
+          className="mt-6"
+          alt="Tassium"
+          width={120}
+          height={120}
+        />
+        <p className="text-neutral-400 text-lg">
+          Connect wallet to view your worker
+        </p>
         <Button
-          className="p-6 px-8"
+          className="p-6 px-8 rounded-none"
           variant="outline"
           onClick={connectWallet}
           disabled={isConnecting}
@@ -78,7 +98,6 @@ const Page = () => {
     );
   }
 
-  // Loading state
   if (loading && !workerData) {
     return (
       <div className="w-full h-screen flex flex-col items-center justify-center gap-6">
