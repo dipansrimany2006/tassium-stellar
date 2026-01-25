@@ -20,11 +20,14 @@ import {
   xlmToStroops,
 } from "@/lib/stellar";
 
+const API_URL = "https://api.silonelabs.workers.dev";
+
 interface ScaleDialogProps {
   children: React.ReactNode;
   appName: string;
   currentScale?: number;
   onScale?: (scale: number) => Promise<void>;
+  onScaleSuccess?: () => void;
 }
 
 export function ScaleDialog({
@@ -32,6 +35,7 @@ export function ScaleDialog({
   appName,
   currentScale = 1,
   onScale,
+  onScaleSuccess,
 }: ScaleDialogProps) {
   const [open, setOpen] = useState(false);
   const [selectedScale, setSelectedScale] = useState(currentScale);
@@ -78,9 +82,21 @@ export function ScaleDialog({
       if (result.status === "SUCCESS") {
         setStatus(`Deposited ${selectedScale} XLM successfully!`);
 
+        // Persist replicas to DB
+        await fetch(`${API_URL}/api/v1/deployments/${appName}/replicas`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ replicas: selectedScale }),
+        });
+
         // Call the onScale callback if provided
         if (onScale) {
           await onScale(selectedScale);
+        }
+
+        // Notify parent to refresh
+        if (onScaleSuccess) {
+          onScaleSuccess();
         }
 
         // Close dialog after short delay

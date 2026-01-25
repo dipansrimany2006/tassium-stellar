@@ -5,9 +5,11 @@ import { MoreHorizontal, GitBranch, Copy, Container } from "lucide-react";
 import { ScaleDialog } from "@/components/scale-dialog";
 
 export function SingleDeploymentCard({
-  deployment, 
+  deployment,
+  onScaleSuccess,
 }: {
   deployment: SingleProject;
+  onScaleSuccess?: () => void;
 }) {
   const formatDate = (date: Date) => {
     return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
@@ -28,7 +30,7 @@ export function SingleDeploymentCard({
           <div>
             <h3 className="font-semibold text-white">{deployment.name}</h3>
             <Link
-              href={`https://${deployment.url}`}
+              href={`${deployment.url}`}
               target="_blank"
               className="text-neutral-400 text-sm hover:underline"
             >
@@ -66,6 +68,7 @@ export function SingleDeploymentCard({
         <ScaleDialog
           appName={deployment.name}
           currentScale={deployment.replicas}
+          onScaleSuccess={onScaleSuccess}
         >
           <button className="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-700 hover:bg-neutral-600 text-neutral-300 text-sm rounded-full">
             <Container className="w-4 h-4" />

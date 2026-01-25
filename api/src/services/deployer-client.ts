@@ -16,18 +16,45 @@ export async function callDeployer(
   deployerUrl: string,
   payload: DeployRequest
 ): Promise<DeployResponse> {
-  const res = await fetch(`${deployerUrl}/api/v1/deploy/new`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
+  // deployer expects snake_case
+  const body = {
+    app_name: payload.appName,
+    github_repo: payload.githubRepo,
+    branch: payload.branch,
+    port: payload.port,
+  };
 
-  if (!res.ok) {
+  const url = `${deployerUrl}/api/v1/deploy/new`;
+  console.log("[callDeployer] POST", url);
+  console.log("[callDeployer] body:", body);
+
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+
+    console.log("[callDeployer] response status:", res.status);
     const text = await res.text();
-    return { success: false, message: "Deployer request failed", error: text };
-  }
+    console.log("[callDeployer] response body:", text);
 
-  return res.json();
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      return { success: false, message: "Invalid JSON response", error: text };
+    }
+
+    if (!res.ok || data.status === "error") {
+      return { success: false, message: data.message || "Deployer failed", error: data.message };
+    }
+
+    return { success: true, message: "Deployed", url: data.url };
+  } catch (err: any) {
+    console.error("[callDeployer] fetch error:", err.message);
+    return { success: false, message: "Network error", error: err.message };
+  }
 }
 
 export async function deleteDeployment(

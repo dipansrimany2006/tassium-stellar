@@ -4,7 +4,8 @@
       "WebFetch(domain:developers.stellar.org)",
       "WebSearch",
       "WebFetch(domain:hono.dev)",
-      "Bash(bun add:*)"
+      "Bash(bun add:*)",
+      "mcp__ide__getDiagnostics"
     ]
   }
 }

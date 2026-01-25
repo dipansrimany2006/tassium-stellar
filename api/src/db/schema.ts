@@ -8,6 +8,7 @@ export const projects = pgTable("projects", {
   port: integer("port").default(3000),
   creator: text("creator").notNull(), // wallet address
   status: text("status").notNull().default("pending"), // pending, processing, success, failed
+  replicas: integer("replicas").default(2),
   url: text("url"),
   errorMessage: text("error_message"),
   createdAt: timestamp("created_at").defaultNow(),

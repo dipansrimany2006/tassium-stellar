@@ -1,0 +1,1 @@
+ALTER TABLE "projects" ADD COLUMN "replicas" integer DEFAULT 2;

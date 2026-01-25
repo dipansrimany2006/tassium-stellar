@@ -6,32 +6,42 @@ import {
   listDeployments,
   getDeployment,
   removeDeployment,
+  updateReplicas,
 } from "../services/deployment.service";
 
 const app = new Hono<{ Bindings: Env }>();
 
 // Create deployment
 app.post("/", async (c) => {
-  const body = await c.req.json();
-  const { appName, githubRepo, branch, port, creator } = body;
+  try {
+    const body = await c.req.json();
+    console.log("[POST /deployments] body:", body);
+    const { appName, githubRepo, branch, port, creator } = body;
 
-  if (!appName || !githubRepo || !creator) {
-    return c.json({ error: "appName, githubRepo, creator required" }, 400);
+    if (!appName || !githubRepo || !creator) {
+      console.log("[POST /deployments] missing fields");
+      return c.json({ error: "appName, githubRepo, creator required" }, 400);
+    }
+
+    console.log("[POST /deployments] DEPLOYER_URL:", c.env.DEPLOYER_URL);
+    const db = createDb(c.env.DATABASE_URL);
+    const result = await createDeployment(db, c.env.DEPLOYER_URL, {
+      appName,
+      githubRepo,
+      branch,
+      port,
+      creator,
+    });
+
+    console.log("[POST /deployments] result:", result);
+    if (result.success) {
+      return c.json(result.project, 201);
+    }
+    return c.json({ error: result.error }, 500);
+  } catch (err: any) {
+    console.error("[POST /deployments] error:", err.message, err.stack);
+    return c.json({ error: err.message }, 500);
   }
-
-  const db = createDb(c.env.DATABASE_URL);
-  const result = await createDeployment(db, c.env.DEPLOYER_URL, {
-    appName,
-    githubRepo,
-    branch,
-    port,
-    creator,
-  });
-
-  if (result.success) {
-    return c.json(result.project, 201);
-  }
-  return c.json({ error: result.error }, 500);
 });
 
 // List deployments by creator (required query param)
@@ -68,6 +78,24 @@ app.delete("/:name", async (c) => {
     return c.json({ success: true });
   }
   return c.json({ error: result.error }, 500);
+});
+
+// Update replicas
+app.patch("/:name/replicas", async (c) => {
+  const name = c.req.param("name");
+  const { replicas } = await c.req.json();
+
+  if (typeof replicas !== "number" || replicas < 1 || replicas > 10) {
+    return c.json({ error: "replicas must be 1-10" }, 400);
+  }
+
+  const db = createDb(c.env.DATABASE_URL);
+  const updated = await updateReplicas(db, name, replicas);
+
+  if (!updated) {
+    return c.json({ error: "Not found" }, 404);
+  }
+  return c.json(updated);
 });
 
 export default app;

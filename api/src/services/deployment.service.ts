@@ -17,18 +17,29 @@ export async function createDeployment(
 ) {
   const { appName, githubRepo, branch = "main", port = 3000, creator } = input;
 
+  console.log("[createDeployment] input:", { appName, githubRepo, branch, port, creator });
+  console.log("[createDeployment] deployerUrl:", deployerUrl);
+
   // Insert pending record
-  const [project] = await db
-    .insert(projects)
-    .values({
-      appName,
-      githubRepo,
-      branch,
-      port,
-      creator,
-      status: "pending",
-    })
-    .returning();
+  let project;
+  try {
+    const [inserted] = await db
+      .insert(projects)
+      .values({
+        appName,
+        githubRepo,
+        branch,
+        port,
+        creator,
+        status: "pending",
+      })
+      .returning();
+    project = inserted;
+    console.log("[createDeployment] inserted project:", project);
+  } catch (dbErr: any) {
+    console.error("[createDeployment] DB insert error:", dbErr.message);
+    return { success: false, error: `DB error: ${dbErr.message}` };
+  }
 
   // Update to processing
   await db
@@ -38,7 +49,9 @@ export async function createDeployment(
 
   // Call deployer
   const deployPayload: DeployRequest = { appName, githubRepo, branch, port };
+  console.log("[createDeployment] calling deployer with:", deployPayload);
   const result = await callDeployer(deployerUrl, deployPayload);
+  console.log("[createDeployment] deployer result:", result);
 
   if (result.success) {
     await db
@@ -89,4 +102,13 @@ export async function removeDeployment(
   }
 
   return result;
+}
+
+export async function updateReplicas(db: Database, appName: string, replicas: number) {
+  const [updated] = await db
+    .update(projects)
+    .set({ replicas, updatedAt: new Date() })
+    .where(eq(projects.appName, appName))
+    .returning();
+  return updated || null;
 }
