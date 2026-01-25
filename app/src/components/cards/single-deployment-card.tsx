@@ -2,9 +2,10 @@ import { SingleProject } from "@/constants";
 import Image from "next/image";
 import Link from "next/link";
 import { MoreHorizontal, GitBranch, Copy, Container } from "lucide-react";
+import { ScaleDialog } from "@/components/scale-dialog";
 
 export function SingleDeploymentCard({
-  deployment,
+  deployment, 
 }: {
   deployment: SingleProject;
 }) {
@@ -62,10 +63,15 @@ export function SingleDeploymentCard({
           <GitBranch className="w-4 h-4" />
           <span>main</span>
         </div>
-        <button className="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-700 hover:bg-neutral-600 text-neutral-300 text-sm rounded-full">
-          <Container className="w-4 h-4" />
-          {deployment.replicas}
-        </button>
+        <ScaleDialog
+          appName={deployment.name}
+          currentScale={deployment.replicas}
+        >
+          <button className="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-700 hover:bg-neutral-600 text-neutral-300 text-sm rounded-full">
+            <Container className="w-4 h-4" />
+            {deployment.replicas}
+          </button>
+        </ScaleDialog>
       </div>
     </div>
   );
