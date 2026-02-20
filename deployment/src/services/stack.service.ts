@@ -24,7 +24,11 @@ ${envSection}
       update_config:
         parallelism: 1
         delay: 10s
+        order: start-first
         failure_action: rollback
+      placement:
+        preferences:
+          - spread: node.id
       restart_policy:
         condition: on-failure
         delay: 5s
