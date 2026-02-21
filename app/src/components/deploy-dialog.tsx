@@ -46,12 +46,23 @@ export function DeployDialog({ children, walletAddress, onDeploySuccess }: Deplo
     setError(null);
 
     try {
+      const parsedEnvVars: Record<string, string> = {};
+      envVars
+        .split("\n")
+        .map((l) => l.trim())
+        .filter((l) => l && l.includes("="))
+        .forEach((l) => {
+          const idx = l.indexOf("=");
+          parsedEnvVars[l.slice(0, idx)] = l.slice(idx + 1);
+        });
+
       const payload: DeployRequest = {
         appName: appName.toLowerCase(),
         githubRepo: parseGitHubUrl(repoUrl),
         creator: walletAddress,
         branch: branch || "main",
         port: parseInt(port) || 3000,
+        ...(Object.keys(parsedEnvVars).length > 0 && { envVars: parsedEnvVars }),
       };
 
       console.log("[deploy] sending payload:", payload);

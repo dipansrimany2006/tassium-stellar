@@ -66,3 +66,22 @@ export async function removeStack(appName: string): Promise<void> {
     throw new Error(`Remove failed: ${result.stderr}`);
   }
 }
+
+export async function getServiceImage(appName: string): Promise<string> {
+  const result = await exec(
+    `docker service inspect ${appName}_${appName} --format '{{.Spec.TaskTemplate.ContainerSpec.Image}}'`,
+  );
+  if (!result.success) {
+    throw new Error(`Inspect failed: ${result.stderr}`);
+  }
+  return result.stdout.trim().replace(/@sha256:.+$/, "");
+}
+
+export async function getServiceReplicas(appName: string): Promise<number> {
+  const result = await exec(
+    `docker service inspect ${appName}_${appName} --format '{{.Spec.Mode.Replicated.Replicas}}'`,
+  );
+  if (!result.success) return 2;
+  const n = parseInt(result.stdout.trim(), 10);
+  return isNaN(n) ? 2 : n;
+}

@@ -19,4 +19,5 @@ export interface DeployRequest {
   creator: string;
   branch: string;
   port: number;
+  envVars?: Record<string, string>;
 }

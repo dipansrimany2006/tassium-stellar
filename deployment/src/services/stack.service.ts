@@ -20,7 +20,7 @@ ${envSection}
     networks:
       - traefik-public
     deploy:
-      replicas: 2
+      replicas: ${ctx.replicas ?? 2}
       update_config:
         parallelism: 1
         delay: 10s

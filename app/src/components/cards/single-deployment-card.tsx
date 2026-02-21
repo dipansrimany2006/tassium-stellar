@@ -1,15 +1,19 @@
 import { SingleProject } from "@/constants";
 import Image from "next/image";
 import Link from "next/link";
-import { MoreHorizontal, GitBranch, Copy, Container } from "lucide-react";
+import { GitBranch, Container, Trash2, Settings } from "lucide-react";
 import { ScaleDialog } from "@/components/scale-dialog";
+import { DeleteDialog } from "@/components/delete-dialog";
+import { EnvEditDialog } from "@/components/env-edit-dialog";
 
 export function SingleDeploymentCard({
   deployment,
   onScaleSuccess,
+  onMutate,
 }: {
   deployment: SingleProject;
   onScaleSuccess?: () => void;
+  onMutate?: () => void;
 }) {
   const formatDate = (date: Date) => {
     return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
@@ -37,6 +41,18 @@ export function SingleDeploymentCard({
               Live Link
             </Link>
           </div>
+        </div>
+        <div className="flex items-center gap-1">
+          <EnvEditDialog appName={deployment.name} onSuccess={onMutate}>
+            <button className="p-1.5 text-neutral-400 hover:text-white hover:bg-neutral-700 rounded">
+              <Settings className="w-4 h-4" />
+            </button>
+          </EnvEditDialog>
+          <DeleteDialog appName={deployment.name} onDeleteSuccess={onMutate}>
+            <button className="p-1.5 text-neutral-400 hover:text-red-400 hover:bg-neutral-700 rounded">
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </DeleteDialog>
         </div>
       </div>
 

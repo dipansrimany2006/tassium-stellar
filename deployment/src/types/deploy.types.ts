@@ -21,4 +21,5 @@ export interface BuildContext {
   imageName: string;
   port: number;
   envVars: Record<string, string>;
+  replicas?: number;
 }

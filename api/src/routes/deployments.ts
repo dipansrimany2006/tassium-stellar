@@ -8,6 +8,7 @@ import {
   removeDeployment,
   updateReplicas,
 } from "../services/deployment.service";
+import { updateEnvVars } from "../services/deployer-client";
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -16,7 +17,7 @@ app.post("/", async (c) => {
   try {
     const body = await c.req.json();
     console.log("[POST /deployments] body:", body);
-    const { appName, githubRepo, branch, port, creator } = body;
+    const { appName, githubRepo, branch, port, creator, envVars } = body;
 
     if (!appName || !githubRepo || !creator) {
       console.log("[POST /deployments] missing fields");
@@ -31,6 +32,7 @@ app.post("/", async (c) => {
       branch,
       port,
       creator,
+      envVars,
     });
 
     console.log("[POST /deployments] result:", result);
@@ -73,6 +75,23 @@ app.delete("/:name", async (c) => {
   const name = c.req.param("name");
   const db = createDb(c.env.DATABASE_URL);
   const result = await removeDeployment(db, c.env.DEPLOYER_URL, name);
+
+  if (result.success) {
+    return c.json({ success: true });
+  }
+  return c.json({ error: result.error }, 500);
+});
+
+// Update env vars
+app.patch("/:name/env", async (c) => {
+  const name = c.req.param("name");
+  const { envVars, port } = await c.req.json();
+
+  if (!envVars || typeof envVars !== "object") {
+    return c.json({ error: "envVars object required" }, 400);
+  }
+
+  const result = await updateEnvVars(c.env.DEPLOYER_URL, name, envVars, port);
 
   if (result.success) {
     return c.json({ success: true });
