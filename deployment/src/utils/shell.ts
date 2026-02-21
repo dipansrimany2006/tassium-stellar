@@ -19,7 +19,7 @@ export async function exec(command: string): Promise<ShellResult> {
   } catch (err: any) {
     return {
       stdout: err.stdout?.toString().trim() || "",
-      stderr: err.stderr?.toString().trim() || err.message,
+      stderr: err.stderr?.toString().trim() || "",
       exitCode: err.exitCode ?? 1,
       success: false,
     };
