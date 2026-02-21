@@ -32,8 +32,9 @@ export async function buildAndPushImage(
   );
 
   if (!result.success) {
-    const lines = (result.stderr || result.stdout).split("\n");
-    const errorLines = lines.slice(-10).join("\n");
+    const output = result.stdout || result.stderr;
+    const lines = output.split("\n");
+    const errorLines = lines.slice(-15).join("\n");
     throw new DockerBuildError(errorLines || "Unknown build error");
   }
   return imageName;
