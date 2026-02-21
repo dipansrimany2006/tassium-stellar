@@ -1,4 +1,4 @@
-export const REGISTRY = "100.75.8.67:5000";
+export const REGISTRY = "100.93.58.52:5000";
 export const DOMAIN = "tassium.roydevelops.tech";
 export const BUILDS_DIR = "/tmp/builds";
 export const STACKS_DIR = "/tmp/stacks";
