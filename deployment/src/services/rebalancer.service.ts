@@ -2,6 +2,7 @@ import { spawn, type Subprocess } from "bun";
 
 const DEBOUNCE_MS = 5_000;
 const RELEVANT_ACTIONS = new Set(["ready", "down"]);
+const EXCLUDED_SERVICES = new Set(["deployer_deployer", "traefik_traefik"]);
 
 let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 let eventProcess: Subprocess | null = null;
@@ -18,7 +19,14 @@ async function rebalanceServices(): Promise<void> {
     return;
   }
 
-  for (const svc of services) {
+  const targetServices = services.filter((s) => !EXCLUDED_SERVICES.has(s));
+
+  if (!targetServices.length) {
+    console.log("[rebalancer] no eligible services to rebalance");
+    return;
+  }
+
+  for (const svc of targetServices) {
     console.log(`[rebalancer] force-updating ${svc}`);
     const update = spawn([
       "docker",
@@ -36,7 +44,7 @@ async function rebalanceServices(): Promise<void> {
     await update.exited;
   }
 
-  console.log(`[rebalancer] rebalanced ${services.length} service(s)`);
+  console.log(`[rebalancer] rebalanced ${targetServices.length} service(s)`);
 }
 
 function scheduleRebalance(): void {
