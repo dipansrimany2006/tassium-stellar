@@ -2,10 +2,15 @@ import { spawn, type Subprocess } from "bun";
 
 const DEBOUNCE_MS = 5_000;
 const RELEVANT_ACTIONS = new Set(["ready", "down", "update"]);
-const EXCLUDED_SERVICES = new Set(["deployer_deployer", "traefik_traefik"]);
+const EXCLUDED_SERVICES = new Set([
+  "deployer_deployer",
+  "traefik_traefik",
+  "registry",
+]);
 
 let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 let eventProcess: Subprocess | null = null;
+let rebalancing = false;
 
 async function pruneDownNodes(): Promise<void> {
   const ls = spawn([
@@ -33,14 +38,14 @@ async function pruneDownNodes(): Promise<void> {
   for (const hostname of Array.from(byHostname.keys())) {
     const nodes = byHostname.get(hostname)!;
     const hasReady = nodes.some(
-      (n: { id: string; status: string }) => n.status === "Ready"
+      (n: { id: string; status: string }) => n.status === "Ready",
     );
     if (!hasReady) continue;
 
     for (const node of nodes) {
       if (node.status === "Down") {
         console.log(
-          `[rebalancer] removing duplicate down node: ${node.id} (${hostname})`
+          `[rebalancer] removing duplicate down node: ${node.id} (${hostname})`,
         );
         const rm = spawn(["docker", "node", "rm", "--force", node.id]);
         await rm.exited;
@@ -50,45 +55,54 @@ async function pruneDownNodes(): Promise<void> {
 }
 
 async function rebalanceServices(): Promise<void> {
+  if (rebalancing) {
+    console.log("[rebalancer] already rebalancing — skipping");
+    return;
+  }
+  rebalancing = true;
   console.log("[rebalancer] node change detected — rebalancing services");
 
-  await pruneDownNodes();
+  try {
+    await pruneDownNodes();
 
-  const ls = spawn(["docker", "service", "ls", "--format", "{{.Name}}"]);
-  const output = await new Response(ls.stdout).text();
-  const services = output.trim().split("\n").filter(Boolean);
+    const ls = spawn(["docker", "service", "ls", "--format", "{{.Name}}"]);
+    const output = await new Response(ls.stdout).text();
+    const services = output.trim().split("\n").filter(Boolean);
 
-  if (!services.length) {
-    console.log("[rebalancer] no services to rebalance");
-    return;
+    if (!services.length) {
+      console.log("[rebalancer] no services to rebalance");
+      return;
+    }
+
+    const targetServices = services.filter((s) => !EXCLUDED_SERVICES.has(s));
+
+    if (!targetServices.length) {
+      console.log("[rebalancer] no eligible services to rebalance");
+      return;
+    }
+
+    for (const svc of targetServices) {
+      console.log(`[rebalancer] force-updating ${svc}`);
+      const update = spawn([
+        "docker",
+        "service",
+        "update",
+        "--force",
+        "--update-order",
+        "start-first",
+        "--update-parallelism",
+        "1",
+        "--update-delay",
+        "10s",
+        svc,
+      ]);
+      await update.exited;
+    }
+
+    console.log(`[rebalancer] rebalanced ${targetServices.length} service(s)`);
+  } finally {
+    rebalancing = false;
   }
-
-  const targetServices = services.filter((s) => !EXCLUDED_SERVICES.has(s));
-
-  if (!targetServices.length) {
-    console.log("[rebalancer] no eligible services to rebalance");
-    return;
-  }
-
-  for (const svc of targetServices) {
-    console.log(`[rebalancer] force-updating ${svc}`);
-    const update = spawn([
-      "docker",
-      "service",
-      "update",
-      "--force",
-      "--update-order",
-      "start-first",
-      "--update-parallelism",
-      "1",
-      "--update-delay",
-      "10s",
-      svc,
-    ]);
-    await update.exited;
-  }
-
-  console.log(`[rebalancer] rebalanced ${targetServices.length} service(s)`);
 }
 
 function scheduleRebalance(): void {
@@ -96,7 +110,7 @@ function scheduleRebalance(): void {
   debounceTimer = setTimeout(() => {
     debounceTimer = null;
     rebalanceServices().catch((err) =>
-      console.error("[rebalancer] rebalance failed:", err)
+      console.error("[rebalancer] rebalance failed:", err),
     );
   }, DEBOUNCE_MS);
 }
@@ -104,7 +118,7 @@ function scheduleRebalance(): void {
 function watchNodeEvents(): void {
   eventProcess = spawn(
     ["docker", "events", "--filter", "type=node", "--format", "{{.Action}}"],
-    { stdout: "pipe", stderr: "pipe" }
+    { stdout: "pipe", stderr: "pipe" },
   );
 
   const stdout = eventProcess.stdout;
