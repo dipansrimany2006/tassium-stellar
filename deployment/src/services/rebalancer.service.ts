@@ -15,17 +15,36 @@ async function pruneDownNodes(): Promise<void> {
     "--filter",
     "role=worker",
     "--format",
-    "{{.ID}} {{.Status}}",
+    "{{.ID}} {{.Hostname}} {{.Status}}",
   ]);
   const output = await new Response(ls.stdout).text();
   const lines = output.trim().split("\n").filter(Boolean);
 
+  // group nodes by hostname
+  const byHostname = new Map<string, { id: string; status: string }[]>();
   for (const line of lines) {
-    const [id, status] = line.split(" ");
-    if (status === "Down" && id) {
-      console.log(`[rebalancer] removing stale down node: ${id}`);
-      const rm = spawn(["docker", "node", "rm", "--force", id]);
-      await rm.exited;
+    const [id, hostname, status] = line.split(" ");
+    if (!id || !hostname || !status) continue;
+    if (!byHostname.has(hostname)) byHostname.set(hostname, []);
+    byHostname.get(hostname)!.push({ id, status });
+  }
+
+  // only prune Down nodes that are duplicates (a Ready node exists for same hostname)
+  for (const hostname of Array.from(byHostname.keys())) {
+    const nodes = byHostname.get(hostname)!;
+    const hasReady = nodes.some(
+      (n: { id: string; status: string }) => n.status === "Ready"
+    );
+    if (!hasReady) continue;
+
+    for (const node of nodes) {
+      if (node.status === "Down") {
+        console.log(
+          `[rebalancer] removing duplicate down node: ${node.id} (${hostname})`
+        );
+        const rm = spawn(["docker", "node", "rm", "--force", node.id]);
+        await rm.exited;
+      }
     }
   }
 }
