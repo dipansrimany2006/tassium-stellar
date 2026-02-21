@@ -1,14 +1,39 @@
 import { spawn, type Subprocess } from "bun";
 
 const DEBOUNCE_MS = 5_000;
-const RELEVANT_ACTIONS = new Set(["ready", "down"]);
+const RELEVANT_ACTIONS = new Set(["ready", "down", "update"]);
 const EXCLUDED_SERVICES = new Set(["deployer_deployer", "traefik_traefik"]);
 
 let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 let eventProcess: Subprocess | null = null;
 
+async function pruneDownNodes(): Promise<void> {
+  const ls = spawn([
+    "docker",
+    "node",
+    "ls",
+    "--filter",
+    "role=worker",
+    "--format",
+    "{{.ID}} {{.Status}}",
+  ]);
+  const output = await new Response(ls.stdout).text();
+  const lines = output.trim().split("\n").filter(Boolean);
+
+  for (const line of lines) {
+    const [id, status] = line.split(" ");
+    if (status === "Down" && id) {
+      console.log(`[rebalancer] removing stale down node: ${id}`);
+      const rm = spawn(["docker", "node", "rm", "--force", id]);
+      await rm.exited;
+    }
+  }
+}
+
 async function rebalanceServices(): Promise<void> {
   console.log("[rebalancer] node change detected — rebalancing services");
+
+  await pruneDownNodes();
 
   const ls = spawn(["docker", "service", "ls", "--format", "{{.Name}}"]);
   const output = await new Response(ls.stdout).text();
