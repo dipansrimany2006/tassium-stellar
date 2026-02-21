@@ -6,7 +6,11 @@ import type {
 } from "../types/deploy.types";
 import { validateAppName, validateGithubRepo } from "../utils/validation";
 import { generateBuildId } from "../utils/id";
-import { cloneRepo, hasDockerfile, GitCloneError } from "../services/git.service";
+import {
+  cloneRepo,
+  hasDockerfile,
+  GitCloneError,
+} from "../services/git.service";
 import {
   buildAndPushImage,
   deployStack,
@@ -104,6 +108,8 @@ export const createNewDeployment = async (c: Context) => {
     }
 
     if (err instanceof DockerBuildError) {
+      console.log(err);
+
       return c.json<DeployResponse>(
         { status: "error", message: `Build failed: ${err.details}` },
         422,
