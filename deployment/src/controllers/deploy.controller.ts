@@ -41,6 +41,8 @@ export const createNewDeployment = async (c: Context) => {
       env_vars = {},
     } = body;
 
+    console.log(body);
+
     const repoCheck = validateGithubRepo(github_repo);
     if (!repoCheck.valid) {
       return c.json<DeployResponse>(
