@@ -102,6 +102,7 @@ export default function Home() {
               key={i}
               deployment={deployment}
               onScaleSuccess={handleDeploySuccess}
+              onMutate={handleDeploySuccess}
             />
           ))
         )}

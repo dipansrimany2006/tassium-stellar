@@ -3,6 +3,7 @@ export interface DeployRequest {
   githubRepo: string;
   branch?: string;
   port?: number;
+  envVars?: Record<string, string>;
 }
 
 export interface DeployResponse {
@@ -22,6 +23,7 @@ export async function callDeployer(
     github_repo: payload.githubRepo,
     branch: payload.branch,
     port: payload.port,
+    env_vars: payload.envVars,
   };
 
   const url = `${deployerUrl}/api/v1/deploy/new`;
@@ -54,6 +56,30 @@ export async function callDeployer(
   } catch (err: any) {
     console.error("[callDeployer] fetch error:", err.message);
     return { success: false, message: "Network error", error: err.message };
+  }
+}
+
+export async function updateEnvVars(
+  deployerUrl: string,
+  appName: string,
+  envVars: Record<string, string>,
+  port?: number
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const res = await fetch(`${deployerUrl}/api/v1/apps/${appName}/env`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ env_vars: envVars, port }),
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      return { success: false, error: text };
+    }
+
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message };
   }
 }
 

@@ -8,6 +8,7 @@ export interface CreateDeploymentInput {
   branch?: string;
   port?: number;
   creator: string;
+  envVars?: Record<string, string>;
 }
 
 export async function createDeployment(
@@ -15,7 +16,7 @@ export async function createDeployment(
   deployerUrl: string,
   input: CreateDeploymentInput
 ) {
-  const { appName, githubRepo, branch = "main", port = 3000, creator } = input;
+  const { appName, githubRepo, branch = "main", port = 3000, creator, envVars } = input;
 
   console.log("[createDeployment] input:", { appName, githubRepo, branch, port, creator });
   console.log("[createDeployment] deployerUrl:", deployerUrl);
@@ -48,7 +49,7 @@ export async function createDeployment(
     .where(eq(projects.id, project.id));
 
   // Call deployer
-  const deployPayload: DeployRequest = { appName, githubRepo, branch, port };
+  const deployPayload: DeployRequest = { appName, githubRepo, branch, port, envVars };
   console.log("[createDeployment] calling deployer with:", deployPayload);
   const result = await callDeployer(deployerUrl, deployPayload);
   console.log("[createDeployment] deployer result:", result);
