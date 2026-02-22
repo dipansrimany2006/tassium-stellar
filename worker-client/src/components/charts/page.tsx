@@ -1,51 +1,54 @@
 "use client";
 
-import { TrendingUp } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart";
-
-const chartData = [
-  { month: "Jan", earnings: 186 },
-  { month: "Feb", earnings: 305 },
-  { month: "Mar", earnings: 237 },
-  { month: "Apr", earnings: 73 },
-  { month: "May", earnings: 209 },
-  { month: "Jun", earnings: 214 },
-  { month: "Jan", earnings: 186 },
-  { month: "Feb", earnings: 305 },
-  { month: "Mar", earnings: 237 },
-  { month: "Apr", earnings: 73 },
-  { month: "May", earnings: 209 },
-  { month: "Jun", earnings: 214 },
-  { month: "Jan", earnings: 186 },
-  { month: "Feb", earnings: 305 },
-  { month: "Mar", earnings: 237 },
-  { month: "Apr", earnings: 73 },
-  { month: "May", earnings: 209 },
-  { month: "Jun", earnings: 214 },
-  { month: "Jan", earnings: 186 },
-  { month: "Feb", earnings: 305 },
-  { month: "Mar", earnings: 237 },
-  { month: "Apr", earnings: 73 },
-  { month: "May", earnings: 209 },
-  { month: "Jun", earnings: 214 },
-];
+import type { MetricsPoint } from "@/app/(root)/page";
 
 const chartConfig = {
-  earnings: {
-    label: "Earnings",
+  credits: {
+    label: "Credits",
     color: "#ffffff",
+  },
+  cpu: {
+    label: "CPU %",
+    color: "#22c55e",
+  },
+  ram: {
+    label: "RAM %",
+    color: "#3b82f6",
   },
 } satisfies ChartConfig;
 
-export function ChartArea() {
+function formatTime(ts: string) {
+  const d = new Date(ts);
+  return `${d.getHours().toString().padStart(2, "0")}:${d.getMinutes().toString().padStart(2, "0")}`;
+}
+
+export function ChartArea({ metrics = [] }: { metrics?: MetricsPoint[] }) {
+  const chartData = metrics.map((m) => ({
+    time: formatTime(m.timestamp),
+    credits: m.creditsEarned,
+    cpu: Math.round(m.cpuUsagePercent),
+    ram: m.ramTotalGb > 0 ? Math.round((m.ramUsedGb / m.ramTotalGb) * 100) : 0,
+  }));
+
+  if (chartData.length === 0) {
+    return (
+      <Card className="border-2 h-full rounded-none bg-neutral-800">
+        <CardContent className="p-2 flex items-center justify-center h-full">
+          <p className="text-neutral-500 text-sm">No metrics data yet. Waiting for first heartbeat...</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="border-2 h-full rounded-none bg-neutral-800">
       <CardContent className="p-2">
@@ -57,7 +60,7 @@ export function ChartArea() {
               stroke="#404040"
             />
             <XAxis
-              dataKey="month"
+              dataKey="time"
               tickLine={false}
               tickMargin={8}
               axisLine={false}
@@ -71,9 +74,11 @@ export function ChartArea() {
             />
             <ChartTooltip
               cursor={false}
-              content={<ChartTooltipContent hideLabel />}
+              content={<ChartTooltipContent />}
             />
-            <Bar dataKey="earnings" fill="#ffffff" radius={4} />
+            <Bar dataKey="credits" fill="#ffffff" radius={4} />
+            <Bar dataKey="cpu" fill="#22c55e" radius={4} />
+            <Bar dataKey="ram" fill="#3b82f6" radius={4} />
           </BarChart>
         </ChartContainer>
       </CardContent>

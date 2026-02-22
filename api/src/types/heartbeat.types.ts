@@ -1,6 +1,16 @@
+export interface SystemMetrics {
+  cpuCores: number;
+  cpuUsagePercent: number;
+  ramTotalGb: number;
+  ramUsedGb: number;
+  storageTotalGb: number;
+  storageUsedGb: number;
+}
+
 export interface ContainerInfo {
-  containerName: string;
-  port: string;
+  name: string;
+  cpuPercent?: number;
+  memUsageMb?: number;
 }
 
 export interface HeartbeatPayload {
@@ -9,6 +19,12 @@ export interface HeartbeatPayload {
   containers: ContainerInfo[];
   tailscaleIp?: string;
   hostname?: string;
+  system?: SystemMetrics;
+}
+
+export interface PingPayload {
+  walletAddress: string;
+  timestamp: string;
 }
 
 export interface UptimeRecord {

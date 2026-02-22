@@ -9,7 +9,9 @@
       "Bash(find:*)",
       "Bash(curl:*)",
       "Bash(npm run build:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(npx drizzle-kit generate:*)",
+      "Bash(npx drizzle-kit migrate:*)"
     ]
   }
 }

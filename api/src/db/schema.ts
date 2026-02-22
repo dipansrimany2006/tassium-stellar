@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, integer, uuid } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, integer, uuid, real } from "drizzle-orm/pg-core";
 
 export const projects = pgTable("projects", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -21,8 +21,13 @@ export const workers = pgTable("workers", {
   tailscaleIp: text("tailscale_ip"),
   hostname: text("hostname"),
   credits: integer("credits").default(0),
+  cpuCores: integer("cpu_cores"),
+  ramTotalGb: real("ram_total_gb"),
+  storageTotalGb: real("storage_total_gb"),
+  status: text("status").default("UNKNOWN"),
   createdAt: timestamp("created_at").defaultNow(),
   lastSeen: timestamp("last_seen"),
+  lastPing: timestamp("last_ping"),
 });
 
 export const workerUptimeRecords = pgTable("worker_uptime_records", {
@@ -32,6 +37,29 @@ export const workerUptimeRecords = pgTable("worker_uptime_records", {
   endTime: timestamp("end_time").notNull(),
   durationMinutes: integer("duration_minutes"),
   createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const workerMetrics = pgTable("worker_metrics", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  walletAddress: text("wallet_address").notNull(),
+  timestamp: timestamp("timestamp").notNull(),
+  cpuCores: integer("cpu_cores"),
+  cpuUsagePercent: real("cpu_usage_percent"),
+  ramTotalGb: real("ram_total_gb"),
+  ramUsedGb: real("ram_used_gb"),
+  storageTotalGb: real("storage_total_gb"),
+  storageUsedGb: real("storage_used_gb"),
+  containerCount: integer("container_count"),
+  creditsEarned: integer("credits_earned"),
+});
+
+export const containerMetrics = pgTable("container_metrics", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  walletAddress: text("wallet_address").notNull(),
+  timestamp: timestamp("timestamp").notNull(),
+  containerName: text("container_name").notNull(),
+  cpuPercent: real("cpu_percent"),
+  memUsageMb: real("mem_usage_mb"),
 });
 
 export const payments = pgTable("payments", {
