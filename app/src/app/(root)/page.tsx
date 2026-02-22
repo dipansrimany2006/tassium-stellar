@@ -4,13 +4,14 @@ import { useEffect, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { DeployDialog } from "@/components/deploy-dialog";
 import { SingleDeploymentCard } from "@/components/cards/single-deployment-card";
+import { useWallet } from "@/context/wallet-context";
 import type { SingleProject } from "@/constants";
 import type { DeploymentResponse } from "@/types/api";
 
 const API_URL = "https://api.silonelabs.workers.dev";
 
 export default function Home() {
-  const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const { walletAddress } = useWallet();
   const [deployments, setDeployments] = useState<SingleProject[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -45,30 +46,14 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    const saved = localStorage.getItem("walletAddress");
-    setWalletAddress(saved);
-    if (saved) {
-      fetchDeployments(saved);
+    if (walletAddress) {
+      setIsLoading(true);
+      fetchDeployments(walletAddress);
     } else {
       setIsLoading(false);
+      setDeployments([]);
     }
-  }, [fetchDeployments]);
-
-  // listen for wallet changes
-  useEffect(() => {
-    const handleStorage = () => {
-      const addr = localStorage.getItem("walletAddress");
-      setWalletAddress(addr);
-      if (addr) {
-        setIsLoading(true);
-        fetchDeployments(addr);
-      } else {
-        setDeployments([]);
-      }
-    };
-    window.addEventListener("storage", handleStorage);
-    return () => window.removeEventListener("storage", handleStorage);
-  }, [fetchDeployments]);
+  }, [walletAddress, fetchDeployments]);
 
   const handleDeploySuccess = () => {
     if (walletAddress) {

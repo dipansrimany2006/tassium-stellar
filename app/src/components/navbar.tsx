@@ -1,58 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { isConnected, requestAccess, getNetwork } from "@stellar/freighter-api";
+import { useWallet } from "@/context/wallet-context";
 
 const Navbar = () => {
-  const [walletAddress, setWalletAddress] = useState<string | null>(null);
-  const [isConnecting, setIsConnecting] = useState(false);
-
-  // Restore address from localStorage on mount
-  useEffect(() => {
-    const saved = localStorage.getItem("walletAddress");
-    if (saved) {
-      setWalletAddress(saved);
-    }
-  }, []);
-
-  const connectWallet = async () => {
-    setIsConnecting(true);
-    try {
-      const connected = await isConnected();
-      if (!connected.isConnected) {
-        alert("Please install Freighter wallet extension");
-        return;
-      }
-
-      // Always request access - returns address if already permitted
-      const accessResult = await requestAccess();
-      if (accessResult.error) {
-        console.error("Access denied:", accessResult.error);
-        return;
-      }
-
-      const { network } = await getNetwork();
-      if (network !== "TESTNET") {
-        alert("Please switch Freighter to Testnet");
-        return;
-      }
-
-      const address = accessResult.address;
-      setWalletAddress(address);
-      localStorage.setItem("walletAddress", address);
-    } catch (error) {
-      console.error("Failed to connect wallet:", error);
-    } finally {
-      setIsConnecting(false);
-    }
-  };
-
-  const disconnectWallet = () => {
-    setWalletAddress(null);
-    localStorage.removeItem("walletAddress");
-  };
+  const { walletAddress, isConnecting, connectWallet, disconnectWallet } =
+    useWallet();
 
   const truncateAddress = (addr: string) => {
     return `${addr.slice(0, 4)}...${addr.slice(-4)}`;
