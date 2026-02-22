@@ -24,10 +24,8 @@ echo -e "\${GREEN}=== Tassium Worker Node Setup ===\${NC}"
 echo -e "\${YELLOW}Installing Docker...\${NC}"
 sudo apt update
 sudo apt install -y docker.io jq
-
-sudo groupadd docker
-
 sudo usermod -aG docker $USER
+newgrp docker
 
 # Step 2: Install Tailscale
 echo -e "\${YELLOW}Installing Tailscale...\${NC}"
