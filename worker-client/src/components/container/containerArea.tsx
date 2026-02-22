@@ -2,7 +2,8 @@ import { Box } from "lucide-react";
 
 interface Container {
   name: string;
-  port: string;
+  cpuPercent?: number;
+  memUsageMb?: number;
 }
 
 export function ContainerArea({ containers = [] }: { containers?: Container[] }) {
@@ -16,6 +17,14 @@ export function ContainerArea({ containers = [] }: { containers?: Container[] })
 
   return (
     <div className="border border-neutral-700 bg-neutral-800 flex flex-col">
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-2 border-b border-neutral-600 text-neutral-500 text-xs uppercase tracking-widest">
+        <span>Container</span>
+        <div className="flex gap-8">
+          <span className="w-16 text-right">CPU</span>
+          <span className="w-20 text-right">Memory</span>
+        </div>
+      </div>
       <div className="overflow-y-auto flex-1">
         {containers.map((container, i) => (
           <div
@@ -26,7 +35,14 @@ export function ContainerArea({ containers = [] }: { containers?: Container[] })
               <Box className="h-4 w-4" />
               {container.name}
             </div>
-            <span className="text-neutral-300">{container.port}</span>
+            <div className="flex gap-8">
+              <span className="w-16 text-right text-neutral-300">
+                {container.cpuPercent != null ? `${container.cpuPercent.toFixed(1)}%` : "—"}
+              </span>
+              <span className="w-20 text-right text-neutral-300">
+                {container.memUsageMb != null ? `${container.memUsageMb.toFixed(0)} MB` : "—"}
+              </span>
+            </div>
           </div>
         ))}
       </div>

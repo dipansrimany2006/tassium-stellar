@@ -8,7 +8,7 @@ const app = new Hono<{ Bindings: Env }>();
 app.use("*", cors());
 
 app.get("/", (c) => {
-  return c.json({ message: "Tassium API" });
+  return c.json({ message: "Tassium API main" });
 });
 
 app.route("/api/v1", routes);

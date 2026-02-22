@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import DataView from "@/components/cards/data-view";
 import { ChartArea } from "@/components/charts/page";
 import { ContainerArea } from "@/components/container/containerArea";
@@ -15,19 +15,26 @@ interface WorkerData {
   tailscaleIp: string | null;
   isActive: boolean;
   lastSeen: string | null;
+  cpuCores?: number;
+  ramTotalGb?: number;
+  storageTotalGb?: number;
+  status?: string;
 }
 
 interface Container {
   name: string;
-  port: string;
+  cpuPercent?: number;
+  memUsageMb?: number;
 }
 
-// Extract port number from Docker format "3000/tcp" or "0.0.0.0:3000->3000/tcp"
-const parsePort = (port: string): string => {
-  if (!port) return "—";
-  const match = port.match(/(\d+)/);
-  return match ? match[1] : port;
-};
+export interface MetricsPoint {
+  timestamp: string;
+  cpuUsagePercent: number;
+  ramUsedGb: number;
+  ramTotalGb: number;
+  creditsEarned: number;
+  containerCount: number;
+}
 
 const API_URL =
   process.env.NEXT_PUBLIC_TASSIUM_API_URL ||
@@ -37,6 +44,8 @@ const Page = () => {
   const { walletAddress, connectWallet, isConnecting } = useWallet();
   const [workerData, setWorkerData] = useState<WorkerData | null>(null);
   const [containers, setContainers] = useState<Container[]>([]);
+  const [metrics, setMetrics] = useState<MetricsPoint[]>([]);
+  const [liveStatus, setLiveStatus] = useState<string>("UNKNOWN");
   const [loading, setLoading] = useState(false);
 
   const fetchWorkerData = useCallback(async () => {
@@ -54,8 +63,9 @@ const Page = () => {
 
       setWorkerData(worker);
       const mapped = (containerData || []).map((c: any) => ({
-        name: c.containerName || c.name,
-        port: parsePort(c.port),
+        name: c.name || c.containerName,
+        cpuPercent: c.cpuPercent,
+        memUsageMb: c.memUsageMb,
       }));
       setContainers(mapped);
     } catch (error) {
@@ -65,13 +75,42 @@ const Page = () => {
     }
   }, [walletAddress]);
 
+  const fetchStatus = useCallback(async () => {
+    if (!walletAddress) return;
+    try {
+      const res = await fetch(`${API_URL}/api/v1/workers/${walletAddress}/status`);
+      const data = await res.json();
+      setLiveStatus(data.status || "UNKNOWN");
+    } catch {}
+  }, [walletAddress]);
+
+  const fetchMetrics = useCallback(async () => {
+    if (!walletAddress) return;
+    try {
+      const res = await fetch(`${API_URL}/api/v1/workers/${walletAddress}/metrics?hours=1`);
+      const data = await res.json();
+      setMetrics(data || []);
+    } catch {}
+  }, [walletAddress]);
+
   useEffect(() => {
-    if (walletAddress) {
-      fetchWorkerData();
-      const interval = setInterval(fetchWorkerData, 30000);
-      return () => clearInterval(interval);
-    }
-  }, [walletAddress, fetchWorkerData]);
+    if (!walletAddress) return;
+
+    fetchWorkerData();
+    fetchStatus();
+    fetchMetrics();
+
+    // 15s status poll, 30s worker data, 60s metrics
+    const statusInterval = setInterval(fetchStatus, 15000);
+    const dataInterval = setInterval(fetchWorkerData, 30000);
+    const metricsInterval = setInterval(fetchMetrics, 60000);
+
+    return () => {
+      clearInterval(statusInterval);
+      clearInterval(dataInterval);
+      clearInterval(metricsInterval);
+    };
+  }, [walletAddress, fetchWorkerData, fetchStatus, fetchMetrics]);
 
   if (!walletAddress) {
     return (
@@ -107,26 +146,27 @@ const Page = () => {
     );
   }
 
-  // No worker exists - show setup command
   if (!workerData?.exists) {
     return <SetupCommandView walletAddress={walletAddress} />;
   }
 
-  // Worker exists - show dashboard
   return (
     <div className="w-full h-full grid grid-cols-9 gap-5">
       <div className="col-span-3 h-full">
         <DataView
           credits={workerData.credits}
           ipAddress={workerData.tailscaleIp || "---"}
-          status={workerData.isActive ? "up" : "down"}
+          status={liveStatus}
+          cpuCores={workerData.cpuCores}
+          ramTotalGb={workerData.ramTotalGb}
+          storageTotalGb={workerData.storageTotalGb}
           onRefetch={fetchWorkerData}
           isRefetching={loading}
         />
       </div>
 
       <div className="col-span-6 flex flex-col gap-5 max-h-screen overflow-hidden">
-        <ChartArea />
+        <ChartArea metrics={metrics} />
       </div>
       <div className="w-full col-span-9">
         <ContainerArea containers={containers} />

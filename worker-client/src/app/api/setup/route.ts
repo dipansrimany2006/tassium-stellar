@@ -1,10 +1,9 @@
 import { NextResponse, NextRequest } from "next/server";
 
-const API_ACCESS_TOKEN = process.env.TAILSCALE_API_KEY;
-const TAILNET_ID = process.env.TAILNET_ID;
-const SWARM_TOKEN = process.env.SWARM_TOKEN;
 const API_URL =
   process.env.TASSIUM_API_URL || "https://api.tassium.roydevelops.tech";
+const SETUP_URL =
+  process.env.SETUP_URL || "https://worker.tassium.roydevelops.tech";
 
 function generateSetupScript(walletAddress: string) {
   return `#!/bin/bash
@@ -13,12 +12,11 @@ set -e
 
 GREEN='\\033[0;32m'
 YELLOW='\\033[1;33m'
+RED='\\033[0;31m'
 NC='\\033[0m'
-API_ACCESS_TOKEN='${API_ACCESS_TOKEN}'
-TAILNET_ID='${TAILNET_ID}'
-SWARM_TOKEN='${SWARM_TOKEN}'
 WALLET_ADDRESS='${walletAddress}'
 API_URL='${API_URL}'
+SETUP_URL='${SETUP_URL}'
 
 echo -e "\${GREEN}=== Tassium Worker Node Setup ===\${NC}"
 
@@ -33,33 +31,29 @@ newgrp docker
 echo -e "\${YELLOW}Installing Tailscale...\${NC}"
 curl -fsSL https://tailscale.com/install.sh | sh
 
-# Step 3: Create auth key via Tailscale API
-if [ -z "$API_ACCESS_TOKEN" ] || [ -z "$TAILNET_ID" ]; then
-  echo -e "\${YELLOW}Error: API_ACCESS_TOKEN and TAILNET_ID are required\${NC}"
+# Step 3: Provision credentials from server
+echo -e "\${YELLOW}Provisioning credentials...\${NC}"
+PROVISION_RESPONSE=$(curl -s -w "\\n%{http_code}" -X POST "\${SETUP_URL}/api/provision" \\
+  -H "Content-Type: application/json" \\
+  -d "{\\"walletAddress\\": \\"\${WALLET_ADDRESS}\\"}")
+
+HTTP_CODE=$(echo "$PROVISION_RESPONSE" | tail -n1)
+PROVISION_BODY=$(echo "$PROVISION_RESPONSE" | sed '$d')
+
+if [ "$HTTP_CODE" != "200" ]; then
+  echo -e "\${RED}Error: Failed to provision credentials (HTTP $HTTP_CODE)\${NC}"
+  echo "$PROVISION_BODY"
   exit 1
 fi
-echo -e "\${YELLOW}Creating Tailscale auth key...\${NC}"
-TAILSCALE_AUTHKEY=$(curl -s "https://api.tailscale.com/api/v2/tailnet/\${TAILNET_ID}/keys" \\
-  --request POST \\
-  --header 'Content-Type: application/json' \\
-  --header "Authorization: Bearer \${API_ACCESS_TOKEN}" \\
-  --data '{
-    "capabilities": {
-      "devices": {
-        "create": {
-          "reusable": false,
-          "ephemeral": false,
-          "preauthorized": false
-        }
-      }
-    }
-  }' | jq -r '.key')
+
+TAILSCALE_AUTHKEY=$(echo "$PROVISION_BODY" | jq -r '.tailscaleAuthKey')
+SWARM_TOKEN=$(echo "$PROVISION_BODY" | jq -r '.swarmToken')
+REGISTRY_IP=$(echo "$PROVISION_BODY" | jq -r '.registryIp')
 
 if [ -z "$TAILSCALE_AUTHKEY" ] || [ "$TAILSCALE_AUTHKEY" = "null" ]; then
-  echo -e "\${YELLOW}Error: Failed to create auth key\${NC}"
+  echo -e "\${RED}Error: Failed to get Tailscale auth key\${NC}"
   exit 1
 fi
-
 
 # Step 4: Authenticate Tailscale with authkey
 echo -e "\${YELLOW}Authenticating Tailscale with authkey...\${NC}"
@@ -67,7 +61,6 @@ sudo tailscale up --authkey="\${TAILSCALE_AUTHKEY}"
 
 # Step 5: Configure insecure registry
 echo -e "\${YELLOW}Configuring Docker registry...\${NC}"
-REGISTRY_IP="\${REGISTRY_IP:-100.75.8.67}"
 
 sudo mkdir -p /etc/docker
 sudo tee /etc/docker/daemon.json > /dev/null <<EOF
@@ -81,8 +74,8 @@ echo -e "\${YELLOW}Restarting Docker...\${NC}"
 sudo systemctl restart docker
 
 # Step 7: Join Swarm
-if [ -z "$SWARM_TOKEN" ]; then
-  echo -e "\${YELLOW}No SWARM_TOKEN provided. Skipping swarm join.\${NC}"
+if [ -z "$SWARM_TOKEN" ] || [ "$SWARM_TOKEN" = "null" ]; then
+  echo -e "\${YELLOW}No SWARM_TOKEN received. Skipping swarm join.\${NC}"
   echo -e "\${YELLOW}Run manually: docker swarm join --token <token> \${REGISTRY_IP}:2377\${NC}"
 else
   echo -e "\${YELLOW}Joining Docker Swarm...\${NC}"
@@ -96,19 +89,80 @@ sudo tee /usr/local/bin/tassium-heartbeat.sh > /dev/null << 'SCRIPT'
 #!/bin/bash
 WALLET_ADDRESS="$1"
 API_URL="$2"
+TICK=0
 
 while true; do
-  CONTAINERS=$(docker ps --format "{{.Names}}|{{.Ports}}" | \\
-    jq -R -s -c 'split("\\n") | map(select(length > 0)) | map(split("|") | {containerName: .[0], port: .[1]})')
+  TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 
-  TAILSCALE_IP=$(tailscale ip -4 2>/dev/null || echo "")
-  HOSTNAME=$(hostname)
+  # Every 30s: lightweight ping
+  curl -s -X POST "$API_URL/api/v1/heartbeat/ping" \
+    -H "Content-Type: application/json" \
+    -d "{\\"walletAddress\\": \\"$WALLET_ADDRESS\\", \\"timestamp\\": \\"$TIMESTAMP\\"}" > /dev/null 2>&1
 
-  curl -s -X POST "$API_URL/api/v1/heartbeat" \\
-    -H "Content-Type: application/json" \\
-    -d "{\\"walletAddress\\": \\"$WALLET_ADDRESS\\", \\"timestamp\\": \\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\\", \\"containers\\": $CONTAINERS, \\"tailscaleIp\\": \\"$TAILSCALE_IP\\", \\"hostname\\": \\"$HOSTNAME\\"}"
+  # Every 10th tick (300s): full heartbeat with system + container metrics
+  if [ $((TICK % 10)) -eq 0 ]; then
+    TAILSCALE_IP=$(tailscale ip -4 2>/dev/null || echo "")
+    HOSTNAME_VAL=$(hostname)
 
-  sleep 300
+    # System metrics
+    CPU_CORES=$(nproc)
+    CPU_USAGE=$(top -bn1 | grep "Cpu(s)" | awk '{print $2}' | cut -d. -f1)
+    [ -z "$CPU_USAGE" ] && CPU_USAGE=0
+
+    RAM_INFO=$(free -m | awk '/Mem:/ {printf "%d %d", $2, $3}')
+    RAM_TOTAL_MB=$(echo "$RAM_INFO" | awk '{print $1}')
+    RAM_USED_MB=$(echo "$RAM_INFO" | awk '{print $2}')
+    RAM_TOTAL_GB=$(echo "scale=2; $RAM_TOTAL_MB / 1024" | bc)
+    RAM_USED_GB=$(echo "scale=2; $RAM_USED_MB / 1024" | bc)
+
+    STORAGE_INFO=$(df -BG / | awk 'NR==2 {gsub("G",""); printf "%d %d", $2, $3}')
+    STORAGE_TOTAL_GB=$(echo "$STORAGE_INFO" | awk '{print $1}')
+    STORAGE_USED_GB=$(echo "$STORAGE_INFO" | awk '{print $2}')
+
+    # Container metrics via docker stats
+    CONTAINERS=$(docker stats --no-stream --format '{{.Name}}|{{.CPUPerc}}|{{.MemUsage}}' 2>/dev/null | \
+      jq -R -s -c 'split("\\n") | map(select(length > 0)) | map(split("|") | {
+        name: .[0],
+        cpuPercent: ((.[1] // "0%") | gsub("%";"") | tonumber),
+        memUsageMb: ((.[2] // "0MiB") | split("/")[0] | gsub("[^0-9.]";"") | tonumber)
+      })')
+    [ -z "$CONTAINERS" ] && CONTAINERS="[]"
+
+    PAYLOAD=$(jq -n \
+      --arg wallet "$WALLET_ADDRESS" \
+      --arg ts "$TIMESTAMP" \
+      --arg ip "$TAILSCALE_IP" \
+      --arg hn "$HOSTNAME_VAL" \
+      --argjson cores "$CPU_CORES" \
+      --argjson cpuUsage "$CPU_USAGE" \
+      --argjson ramTotal "$RAM_TOTAL_GB" \
+      --argjson ramUsed "$RAM_USED_GB" \
+      --argjson storTotal "$STORAGE_TOTAL_GB" \
+      --argjson storUsed "$STORAGE_USED_GB" \
+      --argjson containers "$CONTAINERS" \
+      '{
+        walletAddress: $wallet,
+        timestamp: $ts,
+        tailscaleIp: $ip,
+        hostname: $hn,
+        containers: $containers,
+        system: {
+          cpuCores: $cores,
+          cpuUsagePercent: $cpuUsage,
+          ramTotalGb: $ramTotal,
+          ramUsedGb: $ramUsed,
+          storageTotalGb: $storTotal,
+          storageUsedGb: $storUsed
+        }
+      }')
+
+    curl -s -X POST "$API_URL/api/v1/heartbeat" \
+      -H "Content-Type: application/json" \
+      -d "$PAYLOAD" > /dev/null 2>&1
+  fi
+
+  TICK=$((TICK + 1))
+  sleep 30
 done
 SCRIPT
 
@@ -141,20 +195,14 @@ echo -e "\${YELLOW}Heartbeat service is running. Check status: systemctl status 
 }
 
 export async function GET(request: NextRequest) {
-  const wallet = request.nextUrl.searchParams.get("wallet");
-
-  const missing = [];
-  if (!API_ACCESS_TOKEN) missing.push("TAILSCALE_API_KEY");
-  if (!TAILNET_ID) missing.push("TAILNET_ID");
-  if (!SWARM_TOKEN) missing.push("SWARM_TOKEN");
-  if (!API_URL) missing.push("TASSIUM_API_URL");
-
-  if (missing.length > 0) {
-    return new NextResponse(`Missing env vars: ${missing.join(", ")}`, {
+  if (!SETUP_URL) {
+    return new NextResponse("Missing env var: SETUP_URL", {
       status: 500,
       headers: { "Content-Type": "text/plain" },
     });
   }
+
+  const wallet = request.nextUrl.searchParams.get("wallet");
 
   if (!wallet) {
     return new NextResponse(
