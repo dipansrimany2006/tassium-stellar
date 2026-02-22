@@ -105,15 +105,6 @@ const DataView = ({
           </code>
         </div>
       </div>
-
-      {/* Claim button */}
-      <Button
-        className="w-full rounded-none py-6 mt-2 text-sm font-semibold uppercase tracking-wider"
-        variant="outline"
-        disabled={true}
-      >
-        Claim Rewards
-      </Button>
     </div>
   );
 };
