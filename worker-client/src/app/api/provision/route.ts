@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 const TAILSCALE_API_KEY = process.env.TAILSCALE_API_KEY;
 const TAILNET_ID = process.env.TAILNET_ID;
 const SWARM_TOKEN = process.env.SWARM_TOKEN;
-const REGISTRY_IP = process.env.REGISTRY_IP;
+const REGISTRY_IP = process.env.REGISTRY_IP || "100.75.8.67";
 
 export async function POST(request: NextRequest) {
   const missing = [];
