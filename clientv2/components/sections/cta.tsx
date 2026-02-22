@@ -13,7 +13,7 @@ export function CTA() {
         <h2 className="text-3xl md:text-5xl font-bold tracking-tight">
           Ready to Own Your Pipeline?
         </h2>
-        <p className="mt-4 text-text-muted text-lg">
+        <p className="mt-4 text-text/50 text-lg">
           Deploy your first app in under 5 minutes. Free forever, open source.
         </p>
         <div className="mt-8 flex items-center justify-center gap-4">

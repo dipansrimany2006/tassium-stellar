@@ -2,13 +2,13 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors cursor-pointer whitespace-nowrap",
+  "inline-flex items-center justify-center gap-2 rounded-3xl font-medium transition-colors cursor-pointer whitespace-nowrap",
   {
     variants: {
       variant: {
         default: "bg-accent text-bg hover:bg-accent-hover",
         outline:
-          "border border-border bg-transparent text-text hover:border-border-hover hover:bg-bg-secondary",
+          "border border-border bg-border text-text hover:border-border-hover hover:bg-bg-secondary",
         ghost: "text-text-muted hover:text-text hover:bg-bg-secondary",
       },
       size: {
