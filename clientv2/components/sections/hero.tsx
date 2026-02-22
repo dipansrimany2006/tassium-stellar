@@ -10,11 +10,14 @@ import {
   ShieldCheck,
   Server,
   Activity,
+  ArrowUpRight,
 } from "lucide-react";
+import BackgroundSquare from "../shared/background-square";
+import { BackgroundBeam } from "../shared/background-beam";
 
 export function Hero() {
   return (
-    <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 pt-16">
+    <section className="relative flex min-h-[calc(100vh-200px)] mt-25 flex-col items-center justify-center max-w-8xl overflow-hidden px-6 mx-16 rounded-4xl">
       {/* Glow */}
       <GlowEffect
         size="lg"
@@ -23,76 +26,61 @@ export function Hero() {
 
       {/* Floating nodes */}
       <FloatingNode
-        icon={<Container className="w-3.5 h-3.5" />}
+        icon={<Container className="w-4 h-4" />}
         label="Docker"
-        value="3 replicas"
-        className="top-[18%] left-[8%]"
+        className="top-[20%] left-[20%]"
         delay={0}
       />
       <FloatingNode
-        icon={<GitBranch className="w-3.5 h-3.5" />}
+        icon={<GitBranch className="w-4 h-4" />}
         label="main"
-        value="deployed"
-        className="top-[25%] right-[10%]"
+        className="top-[70%] right-[10%]"
         delay={1.2}
       />
       <FloatingNode
-        icon={<Globe className="w-3.5 h-3.5" />}
-        label="us-east"
-        value="healthy"
-        className="bottom-[30%] left-[12%]"
-        delay={2.4}
-      />
-      <FloatingNode
-        icon={<ShieldCheck className="w-3.5 h-3.5" />}
+        icon={<ShieldCheck className="w-4 h-4" />}
         label="SSL Active"
-        className="top-[15%] right-[25%]"
+        className="top-[20%] right-[20%]"
         delay={0.8}
       />
       <FloatingNode
-        icon={<Server className="w-3.5 h-3.5" />}
-        label="Worker-01"
-        value="4 apps"
-        className="bottom-[25%] right-[8%]"
-        delay={1.8}
-      />
-      <FloatingNode
-        icon={<Activity className="w-3.5 h-3.5" />}
+        icon={<Activity className="w-4 h-4" />}
         label="Uptime"
-        value="99.9%"
-        className="top-[40%] left-[5%]"
+        className="top-[70%] left-[10%]"
         delay={3}
       />
+      
+      <BackgroundSquare size={700} angle={30} x="90%" y="20%" />
+      <BackgroundSquare size={500} angle={-45} x="10%" y="90%" />
 
       {/* Content */}
-      <div className="relative z-10 flex flex-col items-center text-center max-w-4xl">
-        <Badge className="mb-6">Open Source Container Platform</Badge>
+      <div className="relative z-10 flex flex-col items-center text-center max-w-8xl">
+        <Badge className="mb-6 text-text border-text-muted/20 text-sm bg-text/5">Open Source Container Platform</Badge>
 
-        <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-[1.05]">
-          Deploy to Your{" "}
-          <span className="text-accent">Infrastructure</span>
+        <h1 className="text-5xl md:text-7xl lg:text-8xl font-normal tracking-tight leading-[1.05]">
+          Deploy to Your Infrastructure
         </h1>
 
-        <p className="mt-6 max-w-2xl text-lg text-text-muted leading-relaxed">
+        <p className="mt-6 text-xl text-text/50 leading-relaxed">
           One-click deploys from GitHub to your own servers. Multi-arch builds,
           Tailscale mesh, auto SSL. No vendor lock-in.
         </p>
 
-        <div className="mt-8 flex items-center gap-4">
-          <Button size="lg" href="https://app.tassium.io">
-            Start Deploying
+        <div className="mt-12 flex items-center gap-4">
+          <Button size="lg" variant="outline" href="https://app.tassium.io">
+            <ArrowUpRight className="mr-2" /> Open App
           </Button>
           <Button
             size="lg"
-            variant="outline"
             href="https://github.com/silonelabs/tassium"
           >
-            View on GitHub
+            Discover More
           </Button>
         </div>
       </div>
 
       <ScrollIndicator />
+      
     </section>
   );
 }
