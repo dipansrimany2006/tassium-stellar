@@ -1,108 +1,101 @@
 import * as StellarSdk from "@stellar/stellar-sdk";
 import { rpc as StellarRpc } from "@stellar/stellar-sdk";
-import { CONTRACT_ID, RPC_URL, NATIVE_XLM_SAC } from "./config";
+import { SUBSCRIPTION_CONTRACT_ID, RPC_URL } from "./config";
 
 const server = new StellarRpc.Server(RPC_URL);
 
-export async function getBalance(address: string): Promise<string> {
-  const contract = new StellarSdk.Contract(CONTRACT_ID);
-  const account = await server.getAccount(address);
+export async function buildSubscriptionDepositTx(
+  depositorAddress: string,
+  amount: bigint,
+  date: bigint
+): Promise<string> {
+  const contract = new StellarSdk.Contract(SUBSCRIPTION_CONTRACT_ID);
+  const account = await server.getAccount(depositorAddress);
 
   const tx = new StellarSdk.TransactionBuilder(account, {
     fee: StellarSdk.BASE_FEE,
-    networkPassphrase: StellarSdk.Networks.TESTNET,
+    networkPassphrase: StellarSdk.Networks.PUBLIC,
   })
     .addOperation(
-      contract.call("get_balance", StellarSdk.Address.fromString(address).toScVal())
+      contract.call(
+        "deposit",
+        StellarSdk.Address.fromString(depositorAddress).toScVal(),
+        StellarSdk.nativeToScVal(amount, { type: "i128" }),
+        StellarSdk.nativeToScVal(date, { type: "u64" })
+      )
+    )
+    .setTimeout(30)
+    .build();
+
+  const preparedTx = await server.prepareTransaction(tx);
+  return preparedTx.toEnvelope().toXDR("base64");
+}
+
+export async function getDeposits(
+  callerAddress: string,
+  walletAddress: string
+): Promise<Array<{ amount: bigint; date: bigint }>> {
+  const contract = new StellarSdk.Contract(SUBSCRIPTION_CONTRACT_ID);
+  const account = await server.getAccount(callerAddress);
+
+  const tx = new StellarSdk.TransactionBuilder(account, {
+    fee: StellarSdk.BASE_FEE,
+    networkPassphrase: StellarSdk.Networks.PUBLIC,
+  })
+    .addOperation(
+      contract.call(
+        "get_deposits",
+        StellarSdk.Address.fromString(walletAddress).toScVal()
+      )
     )
     .setTimeout(30)
     .build();
 
   const result = await server.simulateTransaction(tx);
 
-  if (StellarRpc.Api.isSimulationSuccess(result) && result.result) {
-    const returnValue = result.result.retval;
-    return StellarSdk.scValToNative(returnValue).toString();
+  if (!StellarRpc.Api.isSimulationSuccess(result) || !result.result) {
+    return [];
   }
 
-  return "0";
+  return StellarSdk.scValToNative(result.result.retval) as Array<{
+    amount: bigint;
+    date: bigint;
+  }>;
 }
 
-export async function buildInitializeTx(adminAddress: string): Promise<string> {
-  const contract = new StellarSdk.Contract(CONTRACT_ID);
-  const account = await server.getAccount(adminAddress);
+export async function getLastSubscriptionDate(
+  callerAddress: string,
+  walletAddress: string
+): Promise<bigint | null> {
+  const contract = new StellarSdk.Contract(SUBSCRIPTION_CONTRACT_ID);
+  const account = await server.getAccount(callerAddress);
 
   const tx = new StellarSdk.TransactionBuilder(account, {
     fee: StellarSdk.BASE_FEE,
-    networkPassphrase: StellarSdk.Networks.TESTNET,
+    networkPassphrase: StellarSdk.Networks.PUBLIC,
   })
     .addOperation(
       contract.call(
-        "initialize",
-        StellarSdk.Address.fromString(NATIVE_XLM_SAC).toScVal()
+        "get_last_subscription_date",
+        StellarSdk.Address.fromString(walletAddress).toScVal()
       )
     )
     .setTimeout(30)
     .build();
 
-  const preparedTx = await server.prepareTransaction(tx);
-  return preparedTx.toEnvelope().toXDR("base64");
-}
+  const result = await server.simulateTransaction(tx);
 
-export async function buildDepositTx(
-  depositorAddress: string,
-  amount: bigint
-): Promise<string> {
-  const contract = new StellarSdk.Contract(CONTRACT_ID);
-  const account = await server.getAccount(depositorAddress);
+  if (!StellarRpc.Api.isSimulationSuccess(result) || !result.result) {
+    return null;
+  }
 
-  const tx = new StellarSdk.TransactionBuilder(account, {
-    fee: StellarSdk.BASE_FEE,
-    networkPassphrase: StellarSdk.Networks.TESTNET,
-  })
-    .addOperation(
-      contract.call(
-        "deposit",
-        StellarSdk.Address.fromString(depositorAddress).toScVal(),
-        StellarSdk.nativeToScVal(amount, { type: "i128" })
-      )
-    )
-    .setTimeout(30)
-    .build();
-
-  const preparedTx = await server.prepareTransaction(tx);
-  return preparedTx.toEnvelope().toXDR("base64");
-}
-
-export async function buildWithdrawTx(
-  withdrawerAddress: string,
-  amount: bigint
-): Promise<string> {
-  const contract = new StellarSdk.Contract(CONTRACT_ID);
-  const account = await server.getAccount(withdrawerAddress);
-
-  const tx = new StellarSdk.TransactionBuilder(account, {
-    fee: StellarSdk.BASE_FEE,
-    networkPassphrase: StellarSdk.Networks.TESTNET,
-  })
-    .addOperation(
-      contract.call(
-        "withdraw",
-        StellarSdk.Address.fromString(withdrawerAddress).toScVal(),
-        StellarSdk.nativeToScVal(amount, { type: "i128" })
-      )
-    )
-    .setTimeout(30)
-    .build();
-
-  const preparedTx = await server.prepareTransaction(tx);
-  return preparedTx.toEnvelope().toXDR("base64");
+  return StellarSdk.scValToNative(result.result.retval) as bigint;
 }
 
 export async function submitTransaction(signedXdr: string): Promise<StellarRpc.Api.GetTransactionResponse> {
   const signedTx = StellarSdk.TransactionBuilder.fromXDR(
     signedXdr,
-    StellarSdk.Networks.TESTNET
+    StellarSdk.Networks.PUBLIC
   );
 
   const txResult = await server.sendTransaction(signedTx);

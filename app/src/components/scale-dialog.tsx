@@ -15,7 +15,7 @@ import {
   signTx,
 } from "@/lib/freighter";
 import {
-  buildDepositTx,
+  buildSubscriptionDepositTx,
   submitTransaction,
   xlmToStroops,
 } from "@/lib/stellar";
@@ -44,6 +44,9 @@ export function ScaleDialog({
   const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [freighterInstalled, setFreighterInstalled] = useState<boolean>(false);
 
+  const isPaid = selectedScale >= 3;
+  const xlmCost = (selectedScale * 0.1).toFixed(3);
+
   useEffect(() => {
     checkFreighterConnection().then(setFreighterInstalled);
   }, []);
@@ -53,60 +56,64 @@ export function ScaleDialog({
     setStatus("");
 
     try {
-      // Connect wallet if not connected
-      let address = walletAddress;
-      if (!address) {
-        setStatus("Connecting wallet...");
-        address = await connectWallet();
+      if (isPaid) {
+        // Connect wallet if not connected
+        let address = walletAddress;
         if (!address) {
-          setStatus("Failed to connect wallet");
+          setStatus("Connecting wallet...");
+          address = await connectWallet();
+          if (!address) {
+            setStatus("Failed to connect wallet");
+            setIsScaling(false);
+            return;
+          }
+          setWalletAddress(address);
+        }
+
+        // Single transaction: XLM transfer + deposit record via contract
+        setStatus("Building transaction...");
+        const amountInStroops = xlmToStroops(selectedScale * 0.001);
+        const now = BigInt(Math.floor(Date.now() / 1000));
+        const xdr = await buildSubscriptionDepositTx(address, amountInStroops, now);
+
+        setStatus("Please sign the transaction in Freighter...");
+        const signedXdr = await signTx(xdr);
+
+        setStatus("Submitting transaction...");
+        const result = await submitTransaction(signedXdr);
+
+        if (result.status !== "SUCCESS") {
+          setStatus(`Transaction failed: ${result.status}`);
           setIsScaling(false);
           return;
         }
-        setWalletAddress(address);
+
+        setStatus(`Paid ${xlmCost} XLM successfully!`);
       }
 
-      // Build deposit transaction with scale amount in XLM
-      setStatus("Building transaction...");
-      const amountInStroops = xlmToStroops(selectedScale);
-      const xdr = await buildDepositTx(address, amountInStroops);
+      // Persist replicas to DB
+      await fetch(`${API_URL}/api/v1/deployments/${appName}/replicas`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ replicas: selectedScale }),
+      });
 
-      // Sign the transaction
-      setStatus("Please sign the transaction in Freighter...");
-      const signedXdr = await signTx(xdr);
-
-      // Submit the transaction
-      setStatus("Submitting transaction...");
-      const result = await submitTransaction(signedXdr);
-
-      if (result.status === "SUCCESS") {
-        setStatus(`Deposited ${selectedScale} XLM successfully!`);
-
-        // Persist replicas to DB
-        await fetch(`${API_URL}/api/v1/deployments/${appName}/replicas`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ replicas: selectedScale }),
-        });
-
-        // Call the onScale callback if provided
-        if (onScale) {
-          await onScale(selectedScale);
-        }
-
-        // Notify parent to refresh
-        if (onScaleSuccess) {
-          onScaleSuccess();
-        }
-
-        // Close dialog after short delay
-        setTimeout(() => {
-          setOpen(false);
-          setStatus("");
-        }, 1500);
-      } else {
-        setStatus(`Transaction failed: ${result.status}`);
+      if (onScale) {
+        await onScale(selectedScale);
       }
+
+      if (onScaleSuccess) {
+        onScaleSuccess();
+      }
+
+      if (!isPaid) {
+        setStatus("Scaled successfully!");
+      }
+
+      setTimeout(() => {
+        setOpen(false);
+        setStatus("");
+      }, 1500);
     } catch (error) {
       setStatus(`Error: ${error}`);
     }
@@ -124,7 +131,7 @@ export function ScaleDialog({
           <DialogTitle>Scale</DialogTitle>
         </DialogHeader>
         <div className="flex flex-col gap-6 mt-6">
-          {!freighterInstalled && (
+          {isPaid && !freighterInstalled && (
             <div className="bg-yellow-900/50 border border-yellow-600 p-3 text-sm">
               <p className="text-yellow-200">
                 Freighter wallet is not installed.{" "}
@@ -155,23 +162,23 @@ export function ScaleDialog({
             ))}
           </div>
 
-          {/* <p className="text-sm text-neutral-400 text-center">
-            Deposit {selectedScale} XLM to scale {appName}
-          </p> */}
-
           <Button
             onClick={handleScale}
-            disabled={isScaling || !freighterInstalled}
+            disabled={isScaling || (isPaid && !freighterInstalled)}
             className="w-full"
           >
-            {isScaling ? "Processing..." : `${selectedScale}X Scale`}
+            {isScaling
+              ? "Processing..."
+              : isPaid
+                ? `${selectedScale}X Scale (${xlmCost} XLM)`
+                : `${selectedScale}X Scale (Free)`}
           </Button>
 
           {status && (
             <p className={`text-sm text-center ${
               status.includes("Error") || status.includes("failed")
                 ? "text-red-400"
-                : status.includes("successfully")
+                : status.includes("successfully") || status.includes("successfully")
                 ? "text-green-400"
                 : "text-white"
             }`}>
