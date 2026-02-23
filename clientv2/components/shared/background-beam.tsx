@@ -27,7 +27,7 @@ export function BackgroundBeam({
   return (
     <div
       className={cn(
-        "absolute inset-0 pointer-events-none -z-10 overflow-hidden",
+        "absolute inset-0 pointer-events-none -z-50 overflow-hidden",
         className
       )}
     >

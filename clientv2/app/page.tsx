@@ -12,9 +12,13 @@ export default function Home() {
     <main className="min-h-screen relative">
       <Navbar />
       <Hero />
-      {/* <BackgroundBeam x="45%" y="-50%" pathLength="500px" color="#fff" delay={0} length={100} />
-      <BackgroundBeam x="50%" y="-50%" pathLength="500px" color="#fff" delay={1} length={100} />
-      <BackgroundBeam x="55%" y="-50%" pathLength="500px" color="#fff" delay={2} length={100} /> */}
+      {/* <BackgroundBeam x="25%" pathLength="500px" color="#fff" delay={0} length={300} />
+      <BackgroundBeam x="50%" pathLength="500px" color="#fff" delay={1} length={300} />
+      <BackgroundBeam x="75%" pathLength="500px" color="#fff" delay={2} length={300} />
+      <BackgroundBeam x="10%" pathLength="500px" color="#fff" delay={3} length={300} />
+      <BackgroundBeam x="30%" pathLength="500px" color="#fff" delay={4} length={300} />
+      <BackgroundBeam x="70%" pathLength="500px" color="#fff" delay={5} length={300} />
+      <BackgroundBeam x="90%" pathLength="500px" color="#fff" delay={6} length={300} /> */}
       {/* <Logos /> */}
       <Features />
       {/* <HowItWorks /> */}

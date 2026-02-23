@@ -17,7 +17,7 @@ import { BackgroundBeam } from "../shared/background-beam";
 
 export function Hero() {
   return (
-    <section className="relative flex min-h-[calc(100vh-200px)] mt-25 flex-col items-center justify-center max-w-8xl overflow-hidden px-6 mx-16 rounded-4xl">
+    <section className="relative flex min-h-[calc(100vh-200px)] mt-25 flex-col items-center justify-center max-w-8xl overflow-hidden px-6 mx-16 rounded-4xl backdrop-blur-xs">
       {/* Glow */}
       <GlowEffect
         size="lg"
@@ -70,10 +70,7 @@ export function Hero() {
           <Button size="lg" variant="outline" href="https://app.tassium.io">
             <ArrowUpRight className="mr-2" /> Open App
           </Button>
-          <Button
-            size="lg"
-            href="https://github.com/silonelabs/tassium"
-          >
+          <Button size="lg" href="https://github.com/silonelabs/tassium">
             Discover More
           </Button>
         </div>
