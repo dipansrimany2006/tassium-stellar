@@ -156,7 +156,7 @@ const gridClasses = [
 
 export function Features() {
   return (
-    <section id="features" className="relative overflow-hidden min-h-[calc(100vh-200px)] max-w-8xl my-16 mx-16 px-6 py-12 rounded-4xl">
+    <section id="features" className="relative overflow-hidden min-h-[calc(100vh-200px)] max-w-8xl my-16 mx-16 px-6 py-12 rounded-4xl backdrop-blur-xs">
       <div className="text-center mb-16">
         <h2 className="text-3xl md:text-5xl font-bold tracking-tight">
           Everything You Need to Deploy
