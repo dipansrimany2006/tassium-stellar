@@ -31,7 +31,7 @@ export async function connectWallet(): Promise<string | null> {
 
 export async function signTx(xdr: string): Promise<string> {
   const result = await signTransaction(xdr, {
-    networkPassphrase: StellarSdk.Networks.PUBLIC,
+    networkPassphrase: StellarSdk.Networks.TESTNET,
   });
 
   return result.signedTxXdr;
