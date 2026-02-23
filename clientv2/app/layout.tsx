@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
+import { PageLoader } from "@/components/shared/page-loader";
 import "./globals.css";
 
 const inter = Inter({
@@ -26,8 +27,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body
-        className={`${jetbrainsMono.variable} font-jetbrains-mono! antialiased`}
+        className={`${jetbrainsMono.className} antialiased`}
       >
+        <PageLoader />
         {children}
       </body>
     </html>

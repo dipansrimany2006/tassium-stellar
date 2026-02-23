@@ -1,25 +1,25 @@
 export const steps = [
   {
     step: 1,
-    title: "Connect",
-    description: "Link your GitHub repository and select a branch to deploy.",
+    title: "Connect Repo",
+    description: "Paste a GitHub URL, pick a branch, name your app.",
   },
   {
     step: 2,
-    title: "Detect",
+    title: "Build Image",
     description:
-      "Framework auto-detected. Dockerfile generated if one doesn't exist.",
+      "Buildx creates multi-arch images and pushes to your private registry.",
   },
   {
     step: 3,
-    title: "Build",
+    title: "Deploy to Swarm",
     description:
-      "Multi-arch image built with Buildx and pushed to your private registry.",
+      "A stack YAML is generated with Traefik labels and rolled out via Docker Swarm.",
   },
   {
     step: 4,
-    title: "Deploy",
+    title: "Live with SSL",
     description:
-      "App goes live on your infrastructure with SSL and routing in seconds.",
+      "Traefik picks up the service, provisions a TLS cert, and your app is live.",
   },
 ] as const;

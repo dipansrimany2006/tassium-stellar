@@ -1,8 +1,17 @@
+"use client";
+
 import { techLogos } from "@/constants/logos";
+import { motion } from "motion/react";
 
 export function Logos() {
   return (
-    <section className="border-y border-border py-10 overflow-hidden">
+    <motion.section
+      initial={{ opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ once: true, amount: 0.3 }}
+      transition={{ duration: 0.6 }}
+      className="border-y border-border py-10 overflow-hidden"
+    >
       <p className="text-center text-xs font-mono uppercase tracking-widest text-text-muted mb-8">
         Works with
       </p>
@@ -24,6 +33,6 @@ export function Logos() {
           ))}
         </div>
       </div>
-    </section>
+    </motion.section>
   );
 }

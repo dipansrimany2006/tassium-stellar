@@ -1,38 +1,38 @@
 export const features = [
   {
     icon: "Rocket",
-    title: "One-Click Deploy",
+    title: "Git Push to Production",
     description:
-      "Push to GitHub, deploy instantly. Automatic Dockerfile detection and builds with zero config.",
+      "Point at a GitHub repo, pick a branch, and deploy. Tassium clones, builds, and ships your app to Docker Swarm automatically.",
   },
   {
     icon: "Cpu",
     title: "Multi-Arch Builds",
     description:
-      "Buildx-powered amd64 and arm64 images built automatically. Run on any hardware.",
+      "Docker Buildx builds amd64 and arm64 images in parallel. Deploy to any mix of x86 and ARM servers.",
   },
   {
     icon: "Network",
     title: "Tailscale Mesh",
     description:
-      "Secure node-to-node networking via WireGuard tunnels. Add any machine to your cluster.",
+      "Manager and worker nodes connect over WireGuard via Tailscale. Add any machine anywhere to your cluster.",
   },
   {
     icon: "ShieldCheck",
-    title: "Auto SSL",
+    title: "Auto SSL via Traefik",
     description:
-      "Traefik v3 handles TLS certificates automatically. Every app gets HTTPS out of the box.",
+      "Traefik v3 provisions Let's Encrypt certificates per app. Every deploy gets HTTPS with zero config.",
   },
   {
     icon: "Globe",
-    title: "Custom Domains",
+    title: "Subdomain Routing",
     description:
-      "Map any domain to your deployed services. Automatic DNS and routing configuration.",
+      "Each app gets a subdomain like myapp.tassium.roydevelops.tech. Traefik routes traffic and terminates TLS.",
   },
   {
     icon: "Search",
-    title: "Auto-Detect Frameworks",
+    title: "Framework Detection",
     description:
-      "Dockerfile generation for Node.js, Python, Go, Bun, and more. Just push your code.",
+      "Auto-generates Dockerfiles for Next.js, Node.js, Python, and static sites. Just push your code.",
   },
 ] as const;

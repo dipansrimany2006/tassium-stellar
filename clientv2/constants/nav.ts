@@ -1,6 +1,5 @@
 export const navLinks = [
-  { label: "Features", href: "#features" },
-  { label: "How It Works", href: "#how-it-works" },
-  { label: "Docs", href: "/docs" },
-  { label: "GitHub", href: "https://github.com/silonelabs/tassium" },
+  { label: "Docs", href: "/docs", icon: "book-open" },
+  { label: "LitePaper", href: "/docs/litepaper", icon: "file-text" },
+  { label: "GitHub", href: "https://github.com/silonelabs/tassium", icon: "github" },
 ];

@@ -1,3 +1,5 @@
+"use client";
+
 import { features } from "@/constants/features";
 import { Card } from "@/components/ui/card";
 import {
@@ -9,6 +11,7 @@ import {
   Search,
 } from "lucide-react";
 import BackgroundSquare from "../shared/background-square";
+import { motion } from "motion/react";
 
 const iconMap = {
   Rocket,
@@ -35,17 +38,17 @@ function FeatureVisual({ icon }: { icon: string }) {
           <div className="space-y-2.5">
             <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.04]">
               <div className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-              <span className="text-xs font-mono text-text/60">git push origin main</span>
+              <span className="text-xs font-mono text-text/60">POST /api/v1/deploy/new</span>
             </div>
             <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.04]">
               <div className="h-1.5 w-1.5 rounded-full bg-accent/60" />
-              <span className="text-xs font-mono text-text/60">Building image...</span>
-              <span className="ml-auto text-[10px] text-text/50">12s</span>
+              <span className="text-xs font-mono text-text/60">buildx --platform linux/amd64,arm64</span>
+              <span className="ml-auto text-[10px] text-text/50">18s</span>
             </div>
             <div className="flex items-center gap-3 px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.04]">
               <div className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-              <span className="text-xs font-mono text-text/60">Deployed to production</span>
-              <span className="ml-auto text-[10px] text-emerald-400">Done</span>
+              <span className="text-xs font-mono text-text/60">docker stack deploy ✓</span>
+              <span className="ml-auto text-[10px] text-emerald-400">Live</span>
             </div>
           </div>
         </div>
@@ -97,7 +100,7 @@ function FeatureVisual({ icon }: { icon: string }) {
             <ShieldCheck className="w-4 h-4 text-emerald-400" />
             <span className="text-[10px] font-mono text-text/50 uppercase tracking-wider">TLS Certificates</span>
           </div>
-          {["app.example.com", "api.example.com", "docs.example.com"].map((domain) => (
+          {["myapp.tassium.roydevelops.tech", "api.tassium.roydevelops.tech", "docs.tassium.roydevelops.tech"].map((domain) => (
             <div key={domain} className="flex items-center justify-between px-3 py-2 rounded-lg bg-white/[0.03] border border-white/[0.04]">
               <span className="text-xs font-mono text-text/60">{domain}</span>
               <div className="flex items-center gap-1.5">
@@ -114,13 +117,13 @@ function FeatureVisual({ icon }: { icon: string }) {
         <div className="w-full space-y-2">
           <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-white/[0.03] border border-white/[0.04]">
             <Globe className="w-3.5 h-3.5 text-accent/50" />
-            <span className="text-xs font-mono text-text/60">app.yoursite.com</span>
+            <span className="text-xs font-mono text-text/60">myapp.tassium.roydevelops.tech</span>
             <span className="ml-auto text-[10px] text-accent/60">A</span>
           </div>
           <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-white/[0.03] border border-white/[0.04]">
             <Globe className="w-3.5 h-3.5 text-accent/50" />
-            <span className="text-xs font-mono text-text/60">api.yoursite.com</span>
-            <span className="ml-auto text-[10px] text-accent/60">CNAME</span>
+            <span className="text-xs font-mono text-text/60">api.tassium.roydevelops.tech</span>
+            <span className="ml-auto text-[10px] text-accent/60">A</span>
           </div>
         </div>
       );
@@ -128,7 +131,7 @@ function FeatureVisual({ icon }: { icon: string }) {
     case "Search":
       return (
         <div className="flex flex-wrap gap-2 justify-center">
-          {["Node.js", "Python", "Go", "Bun", "Rust", "Ruby"].map((fw) => (
+          {["Next.js", "Node.js", "Python", "Static", "Bun", "Go"].map((fw) => (
             <span
               key={fw}
               className="px-3 py-1.5 text-[11px] font-mono rounded-lg bg-white/[0.04] border border-white/[0.06] text-text/50"
@@ -157,37 +160,50 @@ const gridClasses = [
 export function Features() {
   return (
     <section id="features" className="relative overflow-hidden min-h-[calc(100vh-200px)] max-w-8xl my-16 mx-16 px-6 py-12 rounded-4xl backdrop-blur-xs">
-      <div className="text-center mb-16">
+      <motion.div
+        initial={{ y: 30, opacity: 0 }}
+        whileInView={{ y: 0, opacity: 1 }}
+        viewport={{ once: true, amount: 0.5 }}
+        transition={{ duration: 0.6 }}
+        className="text-center mb-16"
+      >
         <h2 className="text-3xl md:text-5xl font-bold tracking-tight">
-          Everything You Need to Deploy
+          How It Works Under the Hood
         </h2>
-        <p className="mt-4 text-text/50 text-lg max-w-2xl mx-auto">
-          From push to production in seconds. Built for developers who want
-          control.
+        <p className="mt-4 text-text/50 text-lg max-w-4xl mx-auto">
+          GitHub repo to live HTTPS endpoint on your own servers. No vendor, no lock-in.
         </p>
-      </div>
+      </motion.div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 auto-rows-[minmax(180px,auto)]">
         {features.map((feature, i) => (
-          <Card
+          <motion.div
             key={feature.title}
-            className={`group flex flex-col justify-between overflow-hidden rounded-3xl bg-bg-secondary/20 backdrop-blur-lg hover:-translate-y-1 transition-all duration-200 p-0! ${gridClasses[i] || ""}`}
+            initial={{ y: 40, opacity: 0 }}
+            whileInView={{ y: 0, opacity: 1 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.5, delay: i * 0.1 }}
+            className={gridClasses[i] || ""}
           >
-            <div className="relative flex-1 flex items-center justify-center p-6 overflow-hidden">
-              <FeatureVisual icon={feature.icon} />
-            </div>
-            <div className="p-6 pt-0">
-              <h3 className="text-lg font-semibold mb-1.5">{feature.title}</h3>
-              <p className="text-sm text-text/50 leading-relaxed">
-                {feature.description}
-              </p>
-            </div>
-          </Card>
+            <Card
+              className={`group flex flex-col justify-between overflow-hidden rounded-3xl bg-text/10 backdrop-blur-lg hover:-translate-y-1 transition-all duration-200 p-0! h-full`}
+            >
+              <div className="relative flex-1 flex items-center justify-center p-6 overflow-hidden">
+                <FeatureVisual icon={feature.icon} />
+              </div>
+              <div className="p-6 pt-0">
+                <h3 className="text-lg font-semibold mb-1.5">{feature.title}</h3>
+                <p className="text-sm text-text/50 leading-relaxed">
+                  {feature.description}
+                </p>
+              </div>
+            </Card>
+          </motion.div>
         ))}
       </div>
 
       <BackgroundSquare size={400} angle={45} x="90%" y="20%" />
-      <BackgroundSquare size={600} angle={-45} x="10%" y="80%" />
+      <BackgroundSquare size={600} angle={-45} x="0%" y="90%" />
     </section>
   );
 }
