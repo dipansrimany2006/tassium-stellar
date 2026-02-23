@@ -63,8 +63,8 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       }
 
       const { network } = await getNetwork();
-      if (network !== "TESTNET") {
-        alert("Please switch Freighter to Testnet");
+      if (network !== "PUBLIC") {
+        alert("Please switch Freighter to Mainnet");
         return;
       }
 
