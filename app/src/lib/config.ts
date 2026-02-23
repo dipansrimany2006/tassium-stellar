@@ -1,9 +1,8 @@
-// Contract configuration
-export const CONTRACT_ID = "CBQFPPUAIKYEJVKBQNQYPKEBV62IEVEWY4BKX2Z33SP4WK7VMG5YX5LA";
+// Contract configuration (mainnet)
+export const CONTRACT_ID = "CCCWT7J2AUNY34BYT3MVJZGZKTKFHXSTA2H7IAE4UWP7OJS4CXEVJUMG";
 
 // Network configuration
-export const RPC_URL = "https://soroban-testnet.stellar.org";
+export const RPC_URL = "https://mainnet.sorobanrpc.com";
 
-// Native XLM Stellar Asset Contract (SAC) address on Testnet
-// This is the wrapped XLM token contract address
-export const NATIVE_XLM_SAC = "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC";
+// Native XLM Stellar Asset Contract (SAC) address on Mainnet
+export const NATIVE_XLM_SAC = "CAS3J7GYLGXMF6TDJBBYYSE3HQ6BBSMLNUQ34T6TZMYMW2EVH34XOWMA";
